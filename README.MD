@@ -30,7 +30,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
+  <a href="https://github.com/SR-Coder/accDbMeter">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -42,11 +42,11 @@
     <a href="https://github.com/SR-Coder/accdbmeter"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <!-- <a href="https://github.com/github_username/repo_name">View Demo</a>
+    <!-- <a href="https://github.com/SR-Coder/accDbMeter">View Demo</a>
     · -->
-    <a href="https://github.com/SR-Coder/repo_name/issues">Report Bug</a>
+    <a href="https://github.com/SR-Coder/accDbMeter/issues">Report Bug</a>
     ·
-    <a href="https://github.com/SR-Coder/repo_name/issues">Request Feature</a>
+    <a href="https://github.com/SR-Coder/accDbMeter/issues">Request Feature</a>
   </p>
 </div>
 
@@ -85,7 +85,6 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -95,7 +94,9 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 <!-- * [![Next][Next.js]][Next-url] -->
 * [![React][React.js]][React-url]
-* [![Mosquitto][mosquitto]][mosquitto-url]
+* [![Micropython][micropython.dev]][micropython-url]
+* [![Mosquitto][mosquittoB]][mosquitto-url]
+
 <!-- * [![Vue][Vue.js]][Vue-url] -->
 <!-- * [![Angular][Angular.io]][Angular-url]
 * [![Svelte][Svelte.dev]][Svelte-url]
@@ -110,7 +111,6 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
@@ -124,17 +124,13 @@ This is an example of how to list things you need to use the software and how to
 ### Installation
 
 1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/SR-Coder/accDbMeter.git
    ```
-3. Install NPM packages
+1. Install NPM packages
    ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
+   npm install;
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -144,9 +140,9 @@ This is an example of how to list things you need to use the software and how to
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+TBD
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -155,12 +151,13 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] Build Front End
+- [ ] Design Code for Sensor
+- [ ] Use Mosquitto Broker to share data
+- [ ] Visualize Audio Levels in a venue
+- [ ] Build Docker Environment for easy installation
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/SR-Coder/accDbMeter/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -196,9 +193,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Jim Reeder -  info@jcrlabs.com
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/SR-Coder/accDbMeter](https://github.com/SR-Coder/accDbMeter)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -207,9 +204,9 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
+<!-- * []()
 * []()
-* []()
-* []()
+* []() -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -217,21 +214,23 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/SR-Coder/accDbMeter.svg?style=for-the-badge
+[contributors-url]: https://github.com/SR-Coder/accDbMeter/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/SR-Coder/accDbMeter.svg?style=for-the-badge
+[forks-url]: https://github.com/SR-Coder/accDbMeter/network/members
+[stars-shield]: https://img.shields.io/github/stars/SR-Coder/accDbMeter.svg?style=for-the-badge
+[stars-url]: https://github.com/SR-Coder/accDbMeter/stargazers
+[issues-shield]: https://img.shields.io/github/issues/SR-Coder/accDbMeter.svg?style=for-the-badge
+[issues-url]: https://github.com/SR-Coder/accDbMeter/issues
+[license-shield]: https://img.shields.io/github/license/SR-Coder/accDbMeter.svg?style=for-the-badge
+[license-url]: https://github.com/SR-Coder/accDbMeter/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/linkedin_username
+[linkedin-url]: https://linkedin.com/in/james-reeder-55582366/
 [product-screenshot]: images/screenshot.png
 [mosquitto-url]: https://mosquitto.org/
 [mosquittoB]:https://mosquitto.org/images/mosquitto-text-side-28.png
+[micropython.dev]:https://micropython.org/static/img/Mlogo_138wh.png
+[micropython-url]:https://micropython.org
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
