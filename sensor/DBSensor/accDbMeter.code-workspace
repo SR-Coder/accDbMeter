@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "serial://dev/tty.usbmodem2101",
+			"uri": "serial:///dev/tty.usbmodem2101/"
+		},
+		{
+			"name": "sensor",
+			"path": ".."
+		},
+		{
+			"name": "serial://dev/tty.usbmodem2101",
+			"uri": "serial:///dev/tty.usbmodem2101/"
+		}
+	],
+	"settings": {}
+}

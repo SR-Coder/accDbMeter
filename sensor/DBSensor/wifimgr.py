@@ -2,7 +2,10 @@ import network
 import socket
 import ure
 import time
+import machine
 
+
+led0 = machine.Pin(0,machine.Pin.OUT)
 ap_ssid = "ACCDBMeter-WifiManager"
 ap_password = "password"
 ap_authmode = 3  # WPA2
@@ -86,15 +89,24 @@ def do_connect(ssid, password):
         return None
     print('Trying to connect to %s...' % ssid)
     wlan_sta.connect(ssid, password)
+    isOn = True
     for retry in range(100):
         connected = wlan_sta.isconnected()
         if connected:
             break
         time.sleep(0.1)
+        if(isOn):
+            led0.off()
+            isOn = False
+        else:
+            led0.on()
+            isOn = True
         print('.', end='')
     if connected:
+        led0.on()
         print('\nConnected. Network config: ', wlan_sta.ifconfig())
     else:
+        led0.off()
         print('\nFailed. Not Connected to: ' + ssid)
     return connected
 
@@ -247,13 +259,13 @@ def handle_not_found(client, url):
 
 def stop():
     global server_socket
-
+    print("in the stop",server_socket)
     if server_socket:
         server_socket.close()
         server_socket = None
 
 
-def start(port=80):
+def start(port=8080):
     global server_socket
 
     addr = socket.getaddrinfo('0.0.0.0', port)[0][-1]
@@ -275,6 +287,10 @@ def start(port=80):
 
     while True:
         if wlan_sta.isconnected():
+            print("wlan.ap | sta is connected? ", wlan_ap.active(), wlan_sta.active())
+            server_socket.close()
+            stop()
+            wlan_ap.active(False)
             return True
 
         client, addr = server_socket.accept()
@@ -308,4 +324,5 @@ def start(port=80):
                 handle_not_found(client, url)
 
         finally:
+            print("closing Connection")
             client.close()

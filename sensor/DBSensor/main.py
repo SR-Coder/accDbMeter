@@ -2,75 +2,52 @@ import wifimgr     # importing the Wi-Fi manager library
 from time import sleep     
 import machine
 import gc
+import time
+import htmlTemplates
+
 try:
-  import usocket as socket
+    import usocket as socket
 except:
-  import socket
-#machine.reset()
+    import socket
+# machine.reset()
+
+led1 = machine.Pin(1,machine.Pin.OUT)
 led = machine.Pin(2, machine.Pin.OUT)
 wlan = wifimgr.get_connection()        #initializing wlan
 if wlan is None:
     print("Could not initialize the network connection.")
     while True:
+        led1.on()
+        time.sleep(0.5)
+        led1.off()
+        time.sleep(.2)
         pass  
 print(" Raspberry Pi Pico W OK")
+if wlan:
+    led1.on()
 led_state = "OFF"
 def web_page():
-    html = """<html>
-
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
-     integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-    <style>
-        html {
-            font-family: Arial;
-            display: inline-block;
-            margin: 0px auto;
-            text-align: center;
-        }
-
-        .button {
-            background-color: #ce1b0e;
-            border: none;
-            color: white;
-            padding: 16px 40px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-        }
-
-        .button1 {
-            background-color: #000000;
-        }
-    </style>
-</head>
-
-<body>
-    <h2> Raspberry Pi Pico Web Server</h2>
-    <p>LED state: <strong>""" + led_state + """</strong></p>
-    <p>
-        <i class="fas fa-lightbulb fa-3x" style="color:#c81919;"></i>
-        <a href=\"?led_2_on\"><button class="button">LED ON</button></a>
-    </p>
-    <p>
-        <i class="far fa-lightbulb fa-3x" style="color:#000000;"></i>
-        <a href=\"?led_2_off\"><button class="button button1">LED OFF</button></a>
-    </p>
-</body>
-
-</html>"""
+    html = htmlTemplates.htmlPage1(led_state)
     return html
 
-
+host_addr = socket.getaddrinfo('0.0.0.0',80)[0][-1]
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('', 80))
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+try:
+    s.bind(host_addr)
+except:
+    print("Unable to bind closing all sockets!")
+
+    for i in range(10):
+        print(".", end='')
+        time.sleep(.1)
+
+s.bind(host_addr)
 s.listen(5)
 
+# Main While loop for doing stuff 
 while True:
+    
     try:
         if gc.mem_free() < 102000:
             gc.collect()

@@ -1,1 +1,0 @@
-# Sensor code will go here... in MicroPython
