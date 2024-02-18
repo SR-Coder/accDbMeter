@@ -160,6 +160,7 @@ TBD
 ## Roadmap
 
 - [ ] Build Front End
+- [ ] Simple Auth for front end (to protect settings or config)
 - [ ] Design Code for Sensor
 - [ ] Use Mosquitto Broker to share data
 - [ ] Visualize Audio Levels in a venue
