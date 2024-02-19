@@ -2,6 +2,8 @@ import { useState } from 'react'
 import reactLogo from '../../src/assets/react.svg'
 import viteLogo from '/vite.svg'
 import '../style/Style.css'
+import HookMqtt from '../components/HookMqtt/'
+
 
 function App() {
     const [count, setCount] = useState(0)
@@ -28,6 +30,8 @@ function App() {
                     Routes and components are pretty much the same thing
                 </p>
             </div>
+            <p>Following is the default Hook MQTT file sourced from the <a href="https://github.com/emqx/MQTT-Client-Examples">EQMX MQTT Examples</a></p>
+            <HookMqtt />
 
         </>
     )
