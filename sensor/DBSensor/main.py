@@ -4,6 +4,8 @@ import machine
 import gc
 import time
 import htmlTemplates
+import sys
+
 
 try:
     import usocket as socket
@@ -11,6 +13,7 @@ except:
     import socket
 # machine.reset()
 
+led0 = machine.Pin(0,machine.Pin.OUT)
 led1 = machine.Pin(1,machine.Pin.OUT)
 led = machine.Pin(2, machine.Pin.OUT)
 wlan = wifimgr.get_connection()        #initializing wlan
@@ -77,3 +80,12 @@ while True:
     except OSError as e:
         conn.close()
         print('Connection closed')
+
+    except KeyboardInterrupt:
+        print("received ctrl-c")
+        print("cleaning up")
+        conn.close()
+        led0.off()
+        led1.off()
+        led.off()
+        sys.exit()
