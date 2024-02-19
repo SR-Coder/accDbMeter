@@ -4,6 +4,7 @@ import machine
 import gc
 import time
 import htmlTemplates
+import webServerFunctions
 import sys
 
 
@@ -60,7 +61,9 @@ while True:
         request = conn.recv(1024)
         conn.settimeout(None)
         request = str(request)
-        print('GET Rquest Content = %s' % request)
+        typeAndRoute = webServerFunctions.getReqTypeAndRoute(request)
+        print(request)
+        print('GET Request Content = %s' % request)
         led_on = request.find('/?led_2_on')
         led_off = request.find('/?led_2_off')
         if led_on == 6:

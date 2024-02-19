@@ -78,7 +78,8 @@ def read_profiles():
 def write_profiles(profiles):
     lines = []
     for ssid, password in profiles.items():
-        lines.append("%s;%s\n" % (ssid, password))
+        if(ssid != 'Reeder Guest'):
+            lines.append("%s;%s\n" % (ssid, password))
     with open(NETWORK_PROFILES, "w") as f:
         f.write(''.join(lines))
 
