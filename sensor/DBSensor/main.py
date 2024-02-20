@@ -6,6 +6,7 @@ import time
 import htmlTemplates
 import webServerFunctions
 import sys
+from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
 
 
 try:
@@ -49,6 +50,16 @@ except:
 s.bind(host_addr)
 s.listen(5)
 
+print("establishing connection to MQTT Server")
+for i in range(100):
+    print(".", end="")
+
+    time.sleep(.2)
+
+client = startMqttClient()
+
+
+
 # Main While loop for doing stuff 
 while True:
     
@@ -70,10 +81,15 @@ while True:
             print('LED ON -> GPIO2')
             led_state = "ON"
             led.on()
+            print(client)
+            # need to add some protection around this.
+            client.publish(_TOPIC_PUB, 'test')
+            
         if led_off == 6:
             print('LED OFF -> GPIO2')
             led_state = "OFF"
             led.off()
+            client.publish(_TOPIC_PUB, '{"light": "off"}')
         response = web_page()
         conn.send('HTTP/1.1 200 OK\n')
         conn.send('Content-Type: text/html\n')
@@ -82,7 +98,7 @@ while True:
         conn.close()
     except OSError as e:
         conn.close()
-        print('Connection closed')
+        print('Connection closed',e)
 
     except KeyboardInterrupt:
         print("received ctrl-c")

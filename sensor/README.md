@@ -36,7 +36,11 @@ WIP
 
 ### TODO
 - [ ] Require SSID's with a Password no open networks
+- [ ] Build a config fule for ease of use
 - [ ] Build Sensor Config Page
+    - [ ] add server address
+    - [ ] add server port
+    - [ ] add device unique ID
 - [ ] Add ability to change passwords and default ssid
 - [ ] Require password to enter the Config page
 - [ ] Add a local domain name so that this device can be connected to without knowing the IP
