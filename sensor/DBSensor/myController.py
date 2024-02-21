@@ -20,15 +20,20 @@ def controller(req, data):
         try:
             username = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
             password = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-        except Exception:
+        except Exception as e:
             username = match.group(1).replace("%3F", "?").replace("%21", "!")
             password = match.group(2).replace("%3F", "?").replace("%21", "!")
+            print('an exception occured in breaking out the password', e)
+        password=str(password).strip("'")
         data = {
             "username":username,
             "password":password
         }
+        print(data)
         isAuthenticated = wsf.checkAuth(data)
         if isAuthenticated:
+            global isLoggedin
+            isLoggedin = True
             page = dashboard()
         else:
             page = index("Invalid Username or Password (AUTH)")

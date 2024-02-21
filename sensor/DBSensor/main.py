@@ -9,7 +9,8 @@ import sys
 from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
 from myController import controller
 
-
+isLoggedIn = False
+global connectionInfo 
 try:
     import usocket as socket
 except:
@@ -31,6 +32,7 @@ if wlan is None:
 print(" Raspberry Pi Pico W OK")
 if wlan:
     led1.on()
+    connectionInfo = wlan.ifconfig()
 led_state = "OFF"
 def web_page():
     html = htmlTemplates.htmlPage1(led_state)
@@ -63,6 +65,8 @@ client = startMqttClient()
 print('Checking Auth Configurations...')
 webServerFunctions.configAuth()
 
+
+
 # Main While loop for doing stuff 
 while True:
     
@@ -77,22 +81,8 @@ while True:
         request = str(request)
         typeAndRoute = webServerFunctions.getReqTypeAndRoute(request)
         print('Request Content = %s' % typeAndRoute)
-        # led_on = request.find('/?led_2_on')
-        # led_off = request.find('/?led_2_off')
-        # if led_on == 6:
-        #     print('LED ON -> GPIO2')
-        #     led_state = "ON"
-        #     led.on()
-        #     print(client)
-        #     # need to add some protection around this.
-        #     client.publish(_TOPIC_PUB, 'test')
-            
-        # if led_off == 6:
-        #     print('LED OFF -> GPIO2')
-        #     led_state = "OFF"
-        #     led.off()
-        #     client.publish(_TOPIC_PUB, '{"light": "off"}')
-        # response = web_page()
+
+        print('Current Connection and address: ',connectionInfo)
 
         response = controller(typeAndRoute, request)
 

@@ -4,7 +4,7 @@ import ure
 import time
 import machine
 
-
+global connectionInfo
 led0 = machine.Pin(0,machine.Pin.OUT)
 ap_ssid = "ACCDBMeter-WifiManager"
 ap_password = "password"
@@ -105,6 +105,9 @@ def do_connect(ssid, password):
         print('.', end='')
     if connected:
         led0.on()
+        global connectionInfo
+    
+        connectionInfo = wlan_sta.ifconfig()
         print('\nConnected. Network config: ', wlan_sta.ifconfig())
     else:
         led0.off()

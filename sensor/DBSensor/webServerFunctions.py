@@ -110,5 +110,20 @@ def configAuth():
         writeAuthData({'root':'root'})
         return False
     
-def redirect(route, page, data=""):
+def renderHTML(conn, page):
+        try:
+            conn.send('HTTP/1.1 200 OK\n')
+            conn.send('Content-Type: text/html\n')
+            conn.send('Connection: close\n\n')
+            conn.sendall(page)
+            conn.close()
+            print('Page rendered')
+            return True
+        except OSError as e:
+            print("Something went wrong with the page render: ",e)
+            return False
+    
+
+def redirect(conn, route, page, data=""):
+
     pass
