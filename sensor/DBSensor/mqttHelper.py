@@ -13,7 +13,7 @@ _TOPIC_MSG = b'TEST'
 def mqttConnect():
     client = MQTTClient(_CLIENT_ID, _MQTT_SERVER, _PORT, keepalive=3600)
     client.connect()
-    print('Connected to %s MQTT Broker' %(_MQTT_SERVER))
+    print('\rConnected to %s MQTT Broker' %(_MQTT_SERVER))
     return client
 
 def mqttReconnect():

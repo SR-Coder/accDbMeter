@@ -7,6 +7,7 @@ import htmlTemplates
 import webServerFunctions
 import sys
 from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
+from myController import controller
 
 
 try:
@@ -50,15 +51,17 @@ except:
 s.bind(host_addr)
 s.listen(5)
 
-print("establishing connection to MQTT Server")
+print("Waiting for connections")
 for i in range(100):
     print(".", end="")
 
-    time.sleep(.2)
+    time.sleep(.1)
 
+print("Connecting to Mqtt Server...")
 client = startMqttClient()
 
-
+print('Checking Auth Configurations...')
+webServerFunctions.configAuth()
 
 # Main While loop for doing stuff 
 while True:
@@ -73,24 +76,26 @@ while True:
         conn.settimeout(None)
         request = str(request)
         typeAndRoute = webServerFunctions.getReqTypeAndRoute(request)
-        print(request)
-        print('GET Request Content = %s' % request)
-        led_on = request.find('/?led_2_on')
-        led_off = request.find('/?led_2_off')
-        if led_on == 6:
-            print('LED ON -> GPIO2')
-            led_state = "ON"
-            led.on()
-            print(client)
-            # need to add some protection around this.
-            client.publish(_TOPIC_PUB, 'test')
+        print('Request Content = %s' % typeAndRoute)
+        # led_on = request.find('/?led_2_on')
+        # led_off = request.find('/?led_2_off')
+        # if led_on == 6:
+        #     print('LED ON -> GPIO2')
+        #     led_state = "ON"
+        #     led.on()
+        #     print(client)
+        #     # need to add some protection around this.
+        #     client.publish(_TOPIC_PUB, 'test')
             
-        if led_off == 6:
-            print('LED OFF -> GPIO2')
-            led_state = "OFF"
-            led.off()
-            client.publish(_TOPIC_PUB, '{"light": "off"}')
-        response = web_page()
+        # if led_off == 6:
+        #     print('LED OFF -> GPIO2')
+        #     led_state = "OFF"
+        #     led.off()
+        #     client.publish(_TOPIC_PUB, '{"light": "off"}')
+        # response = web_page()
+
+        response = controller(typeAndRoute, request)
+
         conn.send('HTTP/1.1 200 OK\n')
         conn.send('Content-Type: text/html\n')
         conn.send('Connection: close\n\n')

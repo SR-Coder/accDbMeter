@@ -260,7 +260,6 @@ def handle_not_found(client, url):
 
 def stop():
     global server_socket
-    print("in the stop",server_socket)
     if server_socket:
         server_socket.close()
         server_socket = None

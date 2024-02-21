@@ -43,8 +43,70 @@ def htmlPage1(data):
                 <i class="far fa-lightbulb fa-3x" style="color:#000000;"></i>
                 <a href=\"?led_2_off\"><button class="button button1">LED OFF</button></a>
             </p>
+            <div>
+                <form action="/login" method="post">
+                    <div>
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" placeholder="username">
+                    </div>
+                    <div>
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" placeholder="password">
+                    </div>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
         </body>
 
         </html>"""
 
+    return html
+
+def index(data = ""):
+    html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ACC DB Sensor</title>
+    </head>
+        <body>
+            <h1>Welcome and Login</h1>
+            <div>
+                <form action="/login" method="post">
+                    <p>{}</p>
+                    <div>
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" placeholder="username">
+                    </div>
+                    <div>
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" placeholder="password">
+                    </div>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+        </body>
+    </html> 
+    """ .format(data)
+    return html
+
+def dashboard():
+    html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>ACC DB Sensor</title>
+        </head>
+            <body>
+                <h1>Welcome</h1>
+                <div>
+                    <p>HEY IT WORKED</p>
+                </div>
+            </body>
+        </html>
+    """
     return html
