@@ -4,7 +4,7 @@ import ure
 import time
 import machine
 
-
+global connectionInfo
 led0 = machine.Pin(0,machine.Pin.OUT)
 ap_ssid = "ACCDBMeter-WifiManager"
 ap_password = "password"
@@ -78,7 +78,8 @@ def read_profiles():
 def write_profiles(profiles):
     lines = []
     for ssid, password in profiles.items():
-        lines.append("%s;%s\n" % (ssid, password))
+        if(ssid != 'Reeder Guest'):
+            lines.append("%s;%s\n" % (ssid, password))
     with open(NETWORK_PROFILES, "w") as f:
         f.write(''.join(lines))
 
@@ -104,6 +105,9 @@ def do_connect(ssid, password):
         print('.', end='')
     if connected:
         led0.on()
+        global connectionInfo
+    
+        connectionInfo = wlan_sta.ifconfig()
         print('\nConnected. Network config: ', wlan_sta.ifconfig())
     else:
         led0.off()
@@ -259,7 +263,6 @@ def handle_not_found(client, url):
 
 def stop():
     global server_socket
-    print("in the stop",server_socket)
     if server_socket:
         server_socket.close()
         server_socket = None
