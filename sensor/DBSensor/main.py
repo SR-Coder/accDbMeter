@@ -4,13 +4,14 @@ import machine
 import gc
 import time
 import htmlTemplates
-import webServerFunctions
+import webServerFunctions as wsf
 import sys
 from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
+import fileFunctions as ff
 from myController import controller
 
-isLoggedIn = False
-global connectionInfo 
+
+global serverAddress 
 try:
     import usocket as socket
 except:
@@ -32,7 +33,7 @@ if wlan is None:
 print(" Raspberry Pi Pico W OK")
 if wlan:
     led1.on()
-    connectionInfo = wlan.ifconfig()
+    serverAddress = wlan.ifconfig()
 led_state = "OFF"
 def web_page():
     html = htmlTemplates.htmlPage1(led_state)
@@ -54,7 +55,7 @@ s.bind(host_addr)
 s.listen(5)
 
 print("Waiting for connections")
-for i in range(100):
+for i in range(50):
     print(".", end="")
 
     time.sleep(.1)
@@ -63,34 +64,26 @@ print("Connecting to Mqtt Server...")
 client = startMqttClient()
 
 print('Checking Auth Configurations...')
-webServerFunctions.configAuth()
+wsf.configAuth()
 
-
+ff.createConfig()
 
 # Main While loop for doing stuff 
 while True:
-    
     try:
         if gc.mem_free() < 102000:
             gc.collect()
         conn, addr = s.accept()
         conn.settimeout(3.0)
-        print('Received HTTP GET connection request from %s' % str(addr))
+        print('Received HTTP Request')
         request = conn.recv(1024)
         conn.settimeout(None)
         request = str(request)
-        typeAndRoute = webServerFunctions.getReqTypeAndRoute(request)
+        typeAndRoute = wsf.getReqTypeAndRoute(request)
         print('Request Content = %s' % typeAndRoute)
 
-        print('Current Connection and address: ',connectionInfo)
-
-        response = controller(typeAndRoute, request)
-
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: text/html\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(response)
-        conn.close()
+        response = controller(typeAndRoute, request, serverAddress, conn)
+        print('calling controller res= ', response)
     except OSError as e:
         conn.close()
         print('Connection closed',e)

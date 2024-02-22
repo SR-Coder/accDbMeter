@@ -13,7 +13,7 @@
 		},
 		{
 			"name": "serial://dev/tty.usbmodem2101",
-			"uri": "serial:///dev/tty.usbmodem2101/"
+			"uri": "serial://%2fdev%2ftty.usbmodem2101/"
 		}
 	],
 	"settings": {}

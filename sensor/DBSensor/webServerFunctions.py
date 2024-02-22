@@ -1,6 +1,7 @@
 # Some Helper functions for the web server 
 import hashlib
 import binascii
+import fileFunctions as ff
 SECRETS = 'secret.dat'
 
 # Determine type of request
@@ -28,7 +29,6 @@ def getReqTypeAndRoute(request):
         }
 
 def hashPasswords(password):
-    print("What is passed to be Hashed: ", password)
     try:
         hashedPassword = hashlib.sha256()
         hashedPassword.update(bytes(password, 'utf-8'))
@@ -83,17 +83,6 @@ def checkAuth(data):
         h = hashPasswords(thisPass)
         currUser = currentUser['username']
         currPass = currentUser['passwordH']
-
-        print("*"*64)
-        print(" ")
-        print("username F: ", currUser)
-        print('passH F: ', currPass)
-        print("*"*64)
-        print("username P: ", thisUser)
-        print('passH P: ', h)
-        print(" ")
-        print("*"*64)
-
         if thisUser == currUser and currPass == h:
             return True
         else:
@@ -121,9 +110,22 @@ def renderHTML(conn, page):
             return True
         except OSError as e:
             print("Something went wrong with the page render: ",e)
+            conn.close()
             return False
     
 
-def redirect(conn, route, page, data=""):
+def redirect(conn, serverAddress, route, data=""):
+    
+    newLoc = f"http://{serverAddress[0]}{route}"
 
-    pass
+    try:
+        conn.send('HTTP/1.1 301 Moved Permanently\n')
+        conn.send(f'Location: {newLoc}\n')
+        conn.send('Content-Length: 0')
+        conn.close()
+        return True
+    except OSError as e:
+        print("Something went wring in the redirect: ", e)
+        conn.close()
+        return False
+    

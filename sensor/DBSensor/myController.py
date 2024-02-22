@@ -1,21 +1,23 @@
 import ure
 from htmlTemplates import index, dashboard
 import webServerFunctions as wsf
+import fileFunctions as ff
 
-def controller(req, data):
-    route = list(req.values())[0]
-    req = route
+def controller( route, request, serverAddress, conn=None):
+    route = list(route.values())[0]
     page = ""
     # define all the routes here in this function
     # BASE ROUTE '/'
-    if req == '/':
-        page = index()
-
+    if route == '/':
+        # page = index()
+        return wsf.renderHTML(conn, index())
+        
     # LOGIN ROUTE
-    elif req == '/login':
-        match = ure.search("username=([^&]*)&password=(.*)", data)
+    elif route == '/login':
+        match = ure.search("username=([^&]*)&password=(.*)", request)
         if match is None:
-            page = index("Invalid Username or Password (POST)")
+            # page = index("Invalid Username or Password (POST)")
+            return wsf.redirect(conn, serverAddress, '/', "invalid username or password")
         # version 1.9 compatibility
         try:
             username = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
@@ -32,10 +34,34 @@ def controller(req, data):
         print(data)
         isAuthenticated = wsf.checkAuth(data)
         if isAuthenticated:
-            global isLoggedin
-            isLoggedin = True
-            page = dashboard()
+            config = ff.readConfig()
+            config['isLoggedIn'] = True
+            config['thisUser']=username
+            config['thisServer'] = serverAddress
+            ff.updateConfig(config)
+            return wsf.redirect(conn, serverAddress, '/dashboard')
         else:
-            page = index("Invalid Username or Password (AUTH)")
+            return wsf.redirect(conn, serverAddress, '/')
+    elif route =='/logout':
+        ff.setIsloggedIn(False)
+        return wsf.redirect(conn, serverAddress, '/')
+        pass
         
-    return page
+    elif route == '/favicon.ico':
+        print('no favicon')
+        return False
+    
+    # PROTECTED ROUTES
+    if not ff.getIsLoggedIn():
+        return wsf.redirect(conn, serverAddress,'/')
+    else:
+        if route == '/dashboard':
+            return wsf.renderHTML(conn, dashboard())
+        
+        elif route == '/logout':
+            ff.setIsloggedIn(False)
+            return wsf.redirect(conn, serverAddress, '/')
+        
+        else:
+            print('route not found')
+            return wsf.redirect(conn, serverAddress, '/')
