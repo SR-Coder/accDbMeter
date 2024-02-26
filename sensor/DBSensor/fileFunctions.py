@@ -15,22 +15,54 @@ def readConfig():
         print("error in reading config: ", e)
         return False
 
-def createConfig():
+def createConfig(data=None):
         config = readConfig()
+        defaultConfig = config
         print("Configuration loaded!: ",config)
         if not config:
             print('No Config File Found Loading Default!')
-            defaultConfig = {
-                # state information
-                'isLoggedIn':False,
-                'thisUser':"",
-                'sensorName':generateUUID(32),
-                # Other information
-                'mqttServer':'192.168.1.93'
-            }
+            if data == None:
+                defaultConfig = {
+                    # sensor information
+                    'isLoggedIn':False,
+                    'thisUser':"root",
+                    'username':'root',
+                    'sensorName':generateUUID(32),
+                    'sensorAddress':"",
+                    'sensorLocation':"Default Location",
+                    'xLoc': 0,
+                    'yLoc': 0,
+                    # Other information
+                    'mqttAddress':'192.168.1.93',
+                    'mqttPort':'1885',
+                    'mqttUsername': "",
+                    'mqttPassword': "",
+                    'mqttRate':60
+                }
+            else:
+                defaultConfig = {
+                    # sensor information
+                    'isLoggedIn':False,
+                    'thisUser':"root",
+                    'username':'root',
+                    'sensorName':generateUUID(32),
+                    'sensorAddress':data['sensorAddress'],
+                    'sensorLocation':"Default Location",
+                    'xLoc': 0,
+                    'yLoc': 0,
+                    # Other information
+                    'mqttAddress':'192.168.1.93',
+                    'mqttPort':'1885',
+                    'mqttUsername': "",
+                    'mqttPassword': "",
+                    'mqttRate':60
+                }
             with open("config.json", "w") as file:
                 json.dump(defaultConfig, file)
             return False
+        defaultConfig['isLoggedIn'] = False
+        with open("config.json", "w") as file:
+            json.dump(defaultConfig, file)
         return True
 
 def updateConfig(data: dict):

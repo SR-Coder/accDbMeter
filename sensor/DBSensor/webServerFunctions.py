@@ -1,6 +1,7 @@
 # Some Helper functions for the web server 
 import hashlib
 import binascii
+import select
 import fileFunctions as ff
 SECRETS = 'secret.dat'
 
@@ -113,6 +114,21 @@ def renderHTML(conn, page):
             conn.close()
             return False
     
+def sendStyleSheet(conn, file='./style.css'):
+    try:
+        textFile = ""
+        conn.send('Content-type: text/css\n')
+        conn.send('Connection: close\n\n')
+        with open(file, 'r') as dataS:
+            textFile = dataS.read()
+        conn.sendall(textFile)
+        conn.close()
+        print('CSS Style Sheet Sent')
+        return True
+    except OSError as e:
+        print('Something went wrong sending the style sheet!', e)
+        conn.close()
+        return False
 
 def redirect(conn, serverAddress, route, data=""):
     
@@ -129,3 +145,94 @@ def redirect(conn, serverAddress, route, data=""):
         conn.close()
         return False
     
+def parseHTTPReq(request):
+    print('Parsing http Req')
+    headers = {}
+    request = request.decode('utf-8')
+    lines = request.split('\r\n')
+    method, path, httpVersion = lines[0].split(' ')
+    for line in lines[1:]:
+        if line == '':
+            break
+        header, value = line.split(': ', 1)
+        headers[header] = value
+    contentLength = int(headers.get('Content-Length', 0))
+    print("REQ PARTS ---> ", method, path, httpVersion, contentLength)
+    return contentLength
+    
+
+    
+def streamRequestBody(conn, request, bufferSize):
+    print("attempting to stream req body")
+    # method, path, httpVersion, headers, contentLength = parseHTTPReq(request)
+    contentLength = 10000
+    remaining = contentLength
+    myBuffer = b''
+    while remaining > 0:
+        chunkSize = min(remaining, bufferSize)
+        chunk = conn.recv(chunkSize)
+        print(chunk)
+        myBuffer += chunk
+        remaining -= len(chunk)
+        if len(chunk) == 0:
+            remaining = 0
+    print('Inside Stream Request --->',myBuffer)
+    return myBuffer
+
+def handleConnections1(sock):
+    conn, addr = sock.accept()
+    conn.settimeout(3.0)
+    print('Received HTTP Request')
+    request = conn.recv(1024)
+    conn.settimeout(None)
+    request = str(request)
+    return request, conn
+
+def handleConnection2(sock):
+
+    readable, _, _ = select.select([sock], [],[], 1.0)
+
+    for s in readable:
+        if s is sock:
+            conn, addr = sock.accept()
+            print(f'connection from {addr}')
+            conn.setblocking(False)
+
+            buffer = bytearray(1024)
+            totalBytesRead = 0
+
+            while True:
+                try:
+                    nbytes = conn.readinto(buffer, 1024)
+                    if nbytes is None:
+                        continue
+                    
+                    if nbytes == 0:
+                        break
+                    totalBytesRead += nbytes
+                    print(f'received {nbytes} bytes')
+                    print(buffer[:nbytes])
+                    return buffer, conn
+                except OSError as e:
+                    if str(e) == '[Errno 11] EAGAIN' or str(e) == '[Errno 119] EAGAIN':
+                        continue
+                    else: 
+                        raise
+
+            print(f'Total bytes recieved: {totalBytesRead}')
+    
+
+    
+
+
+# while b'\r\n\r\n' not in buffer:
+#     data1 = conn.recv(1024)
+#     print("this is the data:  -->", data)
+#     if not data:
+#         print('no more data')
+#         isDone = True
+#         break
+#     buffer += data1
+
+
+# b'POST /update/config HTTP/1.1\r\nHost: 192.168.1.82\r\nConnection: keep-alive\r\nContent-Length: 387\r\nCache-Control: max-age=0\r\nUpgrade-Insecure-Requests: 1\r\nOrigin: http://192.168.1.82\r\nContent-Type: application/x-www-form-urlencoded\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\nReferer: http://192.168.1.82/dashboard\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: en-US,en;q=0.9\r\n\r\nsensorName=iPZl9V2Z93kPVlVTVbXkOKIkn2f8j0Aq&username=root&password=&confPassword=asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasd'

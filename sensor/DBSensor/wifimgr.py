@@ -71,7 +71,8 @@ def read_profiles():
     profiles = {}
     for line in lines:
         ssid, password = line.strip("\n").split(";")
-        profiles[ssid] = password
+        if(ssid != "Reeder Guest"):
+            profiles[ssid] = password
     return profiles
 
 

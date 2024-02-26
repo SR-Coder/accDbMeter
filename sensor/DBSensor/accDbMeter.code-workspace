@@ -16,5 +16,7 @@
 			"uri": "serial://%2fdev%2ftty.usbmodem2101/"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "accDbMeter"
+	}
 }
