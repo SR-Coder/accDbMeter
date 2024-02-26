@@ -38,10 +38,10 @@ WIP
 - [ ] Require SSID's with a Password no open networks
 - [x] Build a config file for ease of use
 - [x] Write is logged out on startup.
-- [ ] Build Sensor Config Page
-    - [ ] add server address
+- [x] Build Sensor Config Page
+    - [x] add server address
     - [ ] add server port
-    - [ ] add device unique ID
+    - [x] add device unique ID
     - [ ] add validations
 - [ ] Add ability to change passwords and default ssid
 - [ ] ensure auth data is writen to secrets file not user config file
