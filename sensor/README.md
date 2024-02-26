@@ -44,5 +44,6 @@ WIP
     - [ ] add device unique ID
     - [ ] add validations
 - [ ] Add ability to change passwords and default ssid
+- [ ] ensure auth data is writen to secrets file not user config file
 - [x] Require password to enter the Config page
 - [ ] Add a local domain name so that this device can be connected to without knowing the IP
