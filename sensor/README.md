@@ -39,11 +39,12 @@ WIP
 - [x] Build a config file for ease of use
 - [x] Write is logged out on startup.
 - [x] Build Sensor Config Page
-    - [x] add server address
-    - [ ] add server port
-    - [x] add device unique ID
-    - [ ] add validations
+    - [x] Add server address
+    - [x] Add server port
+    - [x] Add device unique ID
+    - [x] Add validations
 - [ ] Add ability to change passwords and default ssid
-- [ ] ensure auth data is writen to secrets file not user config file
+- [x] Ensure auth data is writen to secrets file not user config file
 - [x] Require password to enter the Config page
 - [ ] Add a local domain name so that this device can be connected to without knowing the IP
+- [ ] Connect config file to mqtt stuff

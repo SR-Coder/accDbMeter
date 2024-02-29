@@ -10,10 +10,11 @@ _CLIENT_ID = "DBSensor1"
 _TOPIC_PUB = b'ACC DB sensor'
 _TOPIC_MSG = b'TEST'
 
-def mqttConnect():
-    client = MQTTClient(_CLIENT_ID, _MQTT_SERVER, _PORT, keepalive=3600)
+def mqttConnect(clientID:str, mqttServer:str, port:int, keepAlive:int):
+    # client = MQTTClient(_CLIENT_ID, _MQTT_SERVER, _PORT, keepalive=3600)
+    client = MQTTClient(clientID, mqttServer, port, keepalive=keepAlive)
     client.connect()
-    print('\rConnected to %s MQTT Broker' %(_MQTT_SERVER))
+    print('\rConnected to %s MQTT Broker' %(mqttServer))
     return client
 
 def mqttReconnect():
@@ -24,9 +25,9 @@ def mqttReconnect():
     machine.reset()
 
 
-def startMqttClient():
+def startMqttClient(clientID:str, mqttServer:str, port:int, keepAlive:int=3600):
     try: 
-        client = mqttConnect()
+        client = mqttConnect(clientID, mqttServer, port, keepAlive)
         return client
     except OSError as e:
         print("An Error was encountered... reconnecting...", e)

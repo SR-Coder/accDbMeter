@@ -8,8 +8,9 @@ import webServerFunctions as wsf
 import sys
 from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
 import fileFunctions as ff
+import helperFunctions as hf
 from myController import controller
-from Buffer import Buffer
+
 
 
 
@@ -48,19 +49,19 @@ try:
     s.bind(host_addr)
 except:
     print("Unable to bind closing all sockets!")
-
+    s.close()
     for i in range(10):
         print(".", end='')
         time.sleep(.1)
 
 s.bind(host_addr)
-s.listen(1)
+s.listen(5)
 
 
 print("Waiting for connections")
 for i in range(50):
     print(".", end="")
-
+    
     time.sleep(.1)
 
 
@@ -71,21 +72,35 @@ data = {
 wsf.configAuth()
 ff.createConfig(data)
 
-print("Connecting to Mqtt Server...")
-client = startMqttClient()
+configData = ff.readConfig()
 
-print("checking out the Mqtt Client obj: ", client.__dict__)
+print("Connecting to Mqtt Server...")
+mqttClientID = configData['mqttClientID']
+mqttServer = configData['mqttAddress']
+mqttPort = int(configData['mqttPort'])
+print(f'The MQTT Client ID is: {mqttClientID}, the Server Address is: {mqttServer}, and the Port is: {mqttPort}!')
+client = startMqttClient(configData['mqttClientID'], configData['mqttAddress'], int(configData['mqttPort']))
+
+# print("checking out the Mqtt Client obj: ", client.__dict__)
 
 ledPin = False
 # Main While loop for doing stuff 
+
+
+
+prevTime = time.time()*1000
+
 while True:
-    if not ledPin:
-        led.on()
-        ledPin = True
-    else: 
-        led.off()
-        ledPin = False
     
+    # now = time.time()*1000
+    # print("the timing stuff: ",now, prevTime, now - prevTime )
+
+    # if (now-prevTime)>250:
+    #     print("inside the if: ", prevTime)
+    #     hf.statusLight(led)
+
+    #     prevTime = now
+
     try:
         # FREE FRAGEMENTED MEM
         if gc.mem_free() < 102000:
@@ -109,7 +124,6 @@ while True:
         # #################################
     except OSError as e:
         # ON ERROR CLOSE CLIENT CONN
-        conn.close()
         print('Connection closed',e)
 
     except KeyboardInterrupt:

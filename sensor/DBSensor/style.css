@@ -56,6 +56,11 @@ main{
     margin: 10px 0px;
 }
 
+.warning{
+    color: red;
+    font-variant-caps: all-small-caps;
+}
+
 .text-input{
     width: 80%;
     
