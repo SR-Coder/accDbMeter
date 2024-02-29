@@ -4,13 +4,17 @@ import machine
 import gc
 import time
 import htmlTemplates
-import webServerFunctions
+import webServerFunctions as wsf
 import sys
 from mqttHelper import mqttConnect, mqttReconnect, startMqttClient, _TOPIC_PUB, _TOPIC_MSG
+import fileFunctions as ff
+import helperFunctions as hf
 from myController import controller
 
-isLoggedIn = False
-global connectionInfo 
+
+
+
+global serverAddress 
 try:
     import usocket as socket
 except:
@@ -32,7 +36,7 @@ if wlan is None:
 print(" Raspberry Pi Pico W OK")
 if wlan:
     led1.on()
-    connectionInfo = wlan.ifconfig()
+    serverAddress = wlan.ifconfig()
 led_state = "OFF"
 def web_page():
     html = htmlTemplates.htmlPage1(led_state)
@@ -45,7 +49,7 @@ try:
     s.bind(host_addr)
 except:
     print("Unable to bind closing all sockets!")
-
+    s.close()
     for i in range(10):
         print(".", end='')
         time.sleep(.1)
@@ -53,52 +57,83 @@ except:
 s.bind(host_addr)
 s.listen(5)
 
-print("Waiting for connections")
-for i in range(100):
-    print(".", end="")
 
+print("Waiting for connections")
+for i in range(50):
+    print(".", end="")
+    
     time.sleep(.1)
 
-print("Connecting to Mqtt Server...")
-client = startMqttClient()
 
 print('Checking Auth Configurations...')
-webServerFunctions.configAuth()
+data = {
+    'sensorAddress':wlan.ifconfig()[0],
+}
+wsf.configAuth()
+ff.createConfig(data)
 
+configData = ff.readConfig()
 
+print("Connecting to Mqtt Server...")
+mqttClientID = configData['mqttClientID']
+mqttServer = configData['mqttAddress']
+mqttPort = int(configData['mqttPort'])
+print(f'The MQTT Client ID is: {mqttClientID}, the Server Address is: {mqttServer}, and the Port is: {mqttPort}!')
+client = startMqttClient(configData['mqttClientID'], configData['mqttAddress'], int(configData['mqttPort']))
 
+# print("checking out the Mqtt Client obj: ", client.__dict__)
+
+ledPin = False
 # Main While loop for doing stuff 
+
+
+
+prevTime = time.time()*1000
+
 while True:
     
+    # now = time.time()*1000
+    # print("the timing stuff: ",now, prevTime, now - prevTime )
+
+    # if (now-prevTime)>250:
+    #     print("inside the if: ", prevTime)
+    #     hf.statusLight(led)
+
+    #     prevTime = now
+
     try:
+        # FREE FRAGEMENTED MEM
         if gc.mem_free() < 102000:
             gc.collect()
+
+        # REPLACE THIS WITH A FUNCTION
         conn, addr = s.accept()
         conn.settimeout(3.0)
-        print('Received HTTP GET connection request from %s' % str(addr))
+        print('Received HTTP Request')
         request = conn.recv(1024)
         conn.settimeout(None)
         request = str(request)
-        typeAndRoute = webServerFunctions.getReqTypeAndRoute(request)
+
+        typeAndRoute = wsf.getReqTypeAndRoute(request)
         print('Request Content = %s' % typeAndRoute)
 
-        print('Current Connection and address: ',connectionInfo)
+        response = controller(typeAndRoute, request, serverAddress, client, conn)
 
-        response = controller(typeAndRoute, request)
-
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: text/html\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(response)
+        print('calling controller res= ', response)
         conn.close()
+        # #################################
     except OSError as e:
-        conn.close()
+        # ON ERROR CLOSE CLIENT CONN
         print('Connection closed',e)
 
     except KeyboardInterrupt:
+        # ON QUIT CLEAN UP
         print("received ctrl-c")
         print("cleaning up")
-        conn.close()
+        config = ff.readConfig()
+        config['isLoggedIn'] = False
+        ff.updateConfig(config)
+        s.close()
         led0.off()
         led1.off()
         led.off()

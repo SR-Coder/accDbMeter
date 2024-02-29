@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# SERVER STUFF
+index.html
+wifi.dat
