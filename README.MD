@@ -83,7 +83,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Watch the video]()](https://youtu.be/0ZKzztuRJgg)
+[![Watch the video](https://github.com/SR-Coder/images/blob/05f440764e748dc62ee17c6884361ea359455889/SC.png)](https://youtu.be/0ZKzztuRJgg)
 
 
 
