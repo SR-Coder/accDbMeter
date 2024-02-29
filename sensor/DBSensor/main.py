@@ -86,20 +86,7 @@ client = startMqttClient(configData['mqttClientID'], configData['mqttAddress'], 
 ledPin = False
 # Main While loop for doing stuff 
 
-
-
-prevTime = time.time()*1000
-
 while True:
-    
-    # now = time.time()*1000
-    # print("the timing stuff: ",now, prevTime, now - prevTime )
-
-    # if (now-prevTime)>250:
-    #     print("inside the if: ", prevTime)
-    #     hf.statusLight(led)
-
-    #     prevTime = now
 
     try:
         # FREE FRAGEMENTED MEM
