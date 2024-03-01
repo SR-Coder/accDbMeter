@@ -160,3 +160,22 @@ def removeAuthtData():
     with open(SECRETS, "w") as f:
         f.write("")
 
+def saveCookieData(cookie:dict):
+    '''
+        Accepts a cookie object at login and writes it to the 
+        cookie file, only write auth cookies here.
+        - username
+        - id
+        - max-age
+        - currentTime
+    '''
+    try:
+        with open('cookies.dat','a', encoding='utf-8') as f:
+            f.write(f'{cookie}\r')
+        return True
+    except OSError as e:
+        print("unable to write cookie data: ", e)
+        return False
+
+def expireCookies():
+    pass

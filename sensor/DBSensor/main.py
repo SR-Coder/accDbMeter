@@ -96,17 +96,17 @@ while True:
         # REPLACE THIS WITH A FUNCTION
         conn, addr = s.accept()
         conn.settimeout(3.0)
-        print('Received HTTP Request')
+        # print('Received HTTP Request')
         request = conn.recv(1024)
         conn.settimeout(None)
         request = str(request)
-
+        print('FULL REQUEST --> ', request)
         typeAndRoute = wsf.getReqTypeAndRoute(request)
-        print('Request Content = %s' % typeAndRoute)
+        # print('Request Content = %s' % typeAndRoute)
 
         response = controller(typeAndRoute, request, serverAddress, client, conn)
 
-        print('calling controller res= ', response)
+        # print('calling controller res= ', response)
         conn.close()
         # #################################
     except OSError as e:

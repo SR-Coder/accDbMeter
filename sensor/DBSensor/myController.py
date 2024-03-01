@@ -45,8 +45,16 @@ def controller( route, request, serverAddress, client, conn=None):
             config['isLoggedIn'] = True
             config['thisUser']=username
             config['thisServer'] = serverAddress
+            cookieID = ff.generateUUID(32)
+            cookieObj = {
+                'username': username,
+                'id': cookieID,
+                'max-age':3600,
+                'current-time':time.time()
+            }
+            ff.saveCookieData()
             ff.updateConfig(config)
-            return wsf.redirect(conn, serverAddress, '/dashboard')
+            return wsf.redirect(conn, serverAddress, '/dashboard', cookieObj)
         else:
             flashmsgs.flashMsg["login"] = "Invalid Username or Password"
             return wsf.redirect(conn, serverAddress, '/')

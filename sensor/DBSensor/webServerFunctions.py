@@ -104,14 +104,23 @@ def sendFavicon(conn: socket.socket, file='./favicon.ico'):
         print('Something went wrong sending the favicon: ', e)
         return False
 
-def redirect(conn, serverAddress, route, data=""):
-    
+def redirect(conn, serverAddress, route, cookieData={}):
+    '''
+        Take a connection object, address, and a route, and optional cookie data
+        and sends it along with the redirect to the new location
+        the cookieData object must contain
+        - max-age
+    '''
     newLoc = f"http://{serverAddress[0]}{route}"
 
     try:
         conn.send('HTTP/1.1 301 Moved Permanently\r\n')
         conn.send(f'Location: {newLoc}\r\n')
         conn.send('Content-Length: 0\r\n')
+        if len(cookieData)>0:
+            for key in cookieData:
+                if key != "max-age" and key !='current-time':
+                    conn.send(f'Set-Cookie: {key}={cookieData[key]}; Path=/dashboard; Max-age:{cookieData["max-age"]}\r\n')
         conn.send('Connection: Close\r\n\r\n')
         conn.close()
         return True
