@@ -48,6 +48,10 @@ WIP
 - [x] Require password to enter the Config page
 - [ ] Connect config file to mqtt stuff
 - [x] Cookie Based Session
+- [ ] Interface with sensor
+- [ ] Interface with MQTT
+- [ ] Send Data to MQTT
+- [ ] Multi-Threading
 
 ## Version 2
 - [x] Address Security Concerns:
