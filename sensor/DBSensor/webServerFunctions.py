@@ -1,35 +1,9 @@
 # Some Helper functions for the web server 
-import hashlib
-import binascii
-import select
 import fileFunctions as ff
 import helperFunctions as hf
-SECRETS = 'secret.dat'
 import socket
+SECRETS = 'secret.dat'
 
-# Determine type of request
-def getReqTypeAndRoute(request):
-    try:
-        get = request.find("GET")
-        post = request.find("POST")
-        reqArr = str(request).split(' ')
-        if (len(reqArr) > 0):
-            route = reqArr[1]
-        else:
-            route = -1
-        if(get):
-            # return the route
-            return {"get":route}
-        if(post):
-            # return the route
-            return {"post": route}
-
-    except OSError as e: 
-        print("An error occured with the request: ", e)
-        return {
-            "get":get,
-            "post":post
-        }
 
 # Check Auth returns True or False
 def checkAuth(data):
@@ -51,10 +25,9 @@ def configAuth():
     try:
         configuredUser = ff.readAuthData()
         setuser = configuredUser['username']
-        print('user configured: ', setuser)
         return True
     except OSError as e:
-        print('No user configured: first login or factory reset, setting (root, root).', e)
+        print('(configAuth)No user configured: first login or factory reset, setting (root, root).', e)
         ff.writeAuthData({'root':'root'})
         return False
     
@@ -65,10 +38,10 @@ def renderHTML(conn, page):
             conn.send('Connection: close\r\n\r\n')
             conn.sendall(page)
             conn.close()
-            print('Page rendered')
+            print('(renderHTML)(PAGE RENDER)')
             return True
         except OSError as e:
-            print("Something went wrong with the page render: ",e)
+            print("(ERROR)(renderHTML) ",e)
             conn.close()
             return False
     
@@ -82,10 +55,10 @@ def sendStyleSheet(conn, file='./style.css'):
         conn.send('Connection: close\r\n\r\n')
         conn.sendall(textFile)
         conn.close()
-        print('CSS Style Sheet Sent')
+        print("(STYLESHEET) Sent")
         return True
     except OSError as e:
-        print('Something went wrong sending the style sheet!', e)
+        print('(ERROR)(sendStyleSheet)', e)
         conn.close()
         return False
     
@@ -99,9 +72,10 @@ def sendFavicon(conn: socket.socket, file='./favicon.ico'):
         conn.send('Connection: Close\r\n\r\n'.encode())
         conn.sendall(myFile)
         conn.close()
+        print('(FAVICON) Sent')
         return True
     except Exception as e:
-        print('Something went wrong sending the favicon: ', e)
+        print('(ERROR)(sendFavicon) ', e)
         return False
 
 def redirect(conn, serverAddress, route, cookieData={}):
@@ -123,86 +97,80 @@ def redirect(conn, serverAddress, route, cookieData={}):
                     conn.send(f'Set-Cookie: {key}={cookieData[key]}; Path=/dashboard; Max-age:{cookieData["max-age"]}\r\n')
         conn.send('Connection: Close\r\n\r\n')
         conn.close()
+        print("(REDIRECTING): ",newLoc)
         return True
     except OSError as e:
-        print("Something went wring in the redirect: ", e)
+        print("(ERROR)(redirect): ", e, newLoc)
         conn.close()
         return False
     
-def parseHTTPReq(request):
-    print('Parsing http Req')
+
+# def getCookies(request):
+#     cookie = {}
+#     catagory = ""
+#     try:
+#         lines = request.split('\r\n')
+#         for line in lines:
+#             catagory = line.split(':')
+#             if catagory[0] == "Cookie":
+#                 data = catagory[1].split(';')
+#                 for part in data:
+#                     temp = part.split("=")
+#                     # Remove leading whitespace
+#                     cookie[temp[0][1:]] = temp[1]
+#         return cookie
+#     except OSError as e:
+#         print("(getCookies)Something went wrong getting the cookies from the request! \r", e)
+#         return False
+
+def checkCookies(cookie:dict):
+    try:
+        serverCookie = None
+        if len(cookie) == 2:
+            cookie = eval(str(cookie))
+            serverCookie = ff.getOneCookie(cookie['username'], cookie['id'])
+        if serverCookie:
+            return True
+        else:
+            return False
+    except OSError as e:
+        print("(checkCookies)an error occured checking cookies: ",e)
+        return False
+
+def parseRequest(request:bytes):
+    # VARIABLES
     headers = {}
+    tCookie = {}
+    formData = {}
+    
+    # DECODE AND SPLIT
     request = request.decode('utf-8')
     lines = request.split('\r\n')
     method, path, httpVersion = lines[0].split(' ')
+    headers["Method"] = method
+    headers['Path'] = path
+    headers['HttpVersion'] = httpVersion
+    headers['Cookie'] = {}
     for line in lines[1:]:
         if line == '':
             break
         header, value = line.split(': ', 1)
-        headers[header] = value
-    contentLength = int(headers.get('Content-Length', 0))
-    print("REQ PARTS ---> ", method, path, httpVersion, contentLength)
-    return contentLength
-    
-
-    
-def streamRequestBody(conn, request, bufferSize):
-    print("attempting to stream req body")
-    # method, path, httpVersion, headers, contentLength = parseHTTPReq(request)
-    contentLength = 10000
-    remaining = contentLength
-    myBuffer = b''
-    while remaining > 0:
-        chunkSize = min(remaining, bufferSize)
-        chunk = conn.recv(chunkSize)
-        print(chunk)
-        myBuffer += chunk
-        remaining -= len(chunk)
-        if len(chunk) == 0:
-            remaining = 0
-    print('Inside Stream Request --->',myBuffer)
-    return myBuffer
-
-# def handleConnections1(sock):
-#     conn, addr = sock.accept()
-#     conn.settimeout(3.0)
-#     print('Received HTTP Request')
-#     request = conn.recv(1024)
-#     conn.settimeout(None)
-#     request = str(request)
-#     return request, conn
-
-# def handleConnection2(sock):
-
-#     readable, _, _ = select.select([sock], [],[], 1.0)
-
-#     for s in readable:
-#         if s is sock:
-#             conn, addr = sock.accept()
-#             print(f'connection from {addr}')
-#             conn.setblocking(False)
-
-#             buffer = bytearray(1024)
-#             totalBytesRead = 0
-
-#             while True:
-#                 try:
-#                     nbytes = conn.readinto(buffer, 1024)
-#                     if nbytes is None:
-#                         continue
-                    
-#                     if nbytes == 0:
-#                         break
-#                     totalBytesRead += nbytes
-#                     print(f'received {nbytes} bytes')
-#                     print(buffer[:nbytes])
-#                     return buffer, conn
-#                 except OSError as e:
-#                     if str(e) == '[Errno 11] EAGAIN' or str(e) == '[Errno 119] EAGAIN':
-#                         continue
-#                     else: 
-#                         raise
-
-#             print(f'Total bytes recieved: {totalBytesRead}')
-    
-
+        if header == 'Cookie':
+            data = value.split('; ', 1)
+            for items in data:
+                head, val = items.split('=')
+                tCookie[head] = val
+            headers[header] = tCookie
+        else:
+            headers[header] = value
+    postData = lines[-1].split('&')
+    try:
+        if postData[0] != '':
+            for item in postData:
+                header, value = item.split('=',1)
+                formData[header] = value
+            headers['Post'] = formData
+    except Exception as e:
+        print("Something went wrong parsing the data!! ", e)
+        print(postData)
+    return headers

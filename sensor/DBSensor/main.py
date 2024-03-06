@@ -70,6 +70,7 @@ data = {
     'sensorAddress':wlan.ifconfig()[0],
 }
 wsf.configAuth()
+ff.clearCookies()
 ff.createConfig(data)
 
 configData = ff.readConfig()
@@ -85,8 +86,15 @@ client = startMqttClient(configData['mqttClientID'], configData['mqttAddress'], 
 
 ledPin = False
 # Main While loop for doing stuff 
-
+prevTime = time.time()
+cookieTimeout = configData['c-timeout']
 while True:
+
+    # Check for expired cookies
+    now = time.time()
+    if now > (prevTime + cookieTimeout):
+        ff.expireCookies()
+        prevTime = now
 
     try:
         # FREE FRAGEMENTED MEM
@@ -99,12 +107,13 @@ while True:
         # print('Received HTTP Request')
         request = conn.recv(1024)
         conn.settimeout(None)
-        request = str(request)
-        print('FULL REQUEST --> ', request)
-        typeAndRoute = wsf.getReqTypeAndRoute(request)
-        # print('Request Content = %s' % typeAndRoute)
 
-        response = controller(typeAndRoute, request, serverAddress, client, conn)
+        # new here
+        recDict = wsf.parseRequest(request)
+
+        request = request.decode('utf-8')
+
+        response = controller(recDict, serverAddress, client, conn)
 
         # print('calling controller res= ', response)
         conn.close()

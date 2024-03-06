@@ -9,37 +9,40 @@ import flashmsgs
 
 
 
-def controller( route, request, serverAddress, client, conn=None):
-    isLoggedIn = ff.getIsLoggedIn()
+def controller(recDict, serverAddress, client, conn=None):
+    # serverAddress, we can still pass that 
+    # client = mqttClient
+    # conn = connection
+
+    cookies = recDict['Cookie']
+    route = recDict['Path']
+
+    # Only check cookies for valid routes
+    if route != "/favicon.ico" or route != "/style.css":
+        isValidCookie = wsf.checkCookies(cookies)
+
+    # Get the configuration from file
     config = ff.readConfig()
-    route = list(route.values())[0]
-    page = ""
+
     # define all the routes here in this function
     # BASE ROUTE '/'
-    if route == '/' and not isLoggedIn:
+    if route == '/' and not isValidCookie:
         # page = index()
         return wsf.renderHTML(conn, index())
         
     # LOGIN ROUTE
-    elif route == '/login' and not isLoggedIn:
-        match = ure.search("username=([^&]*)&password=(.*)", request)
-        if match is None:
+    elif route == '/login' and not isValidCookie:
+        try:
+            up = recDict['Post']
+            username = up['username']
+            password = up['password']
+        except:
             flashmsgs.flashMsg['login'] = "Invalid Username or Password"
             return wsf.redirect(conn, serverAddress, '/')
-        # version 1.9 compatibility
-        try:
-            username = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-            password = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-        except Exception as e:
-            username = match.group(1).replace("%3F", "?").replace("%21", "!")
-            password = match.group(2).replace("%3F", "?").replace("%21", "!")
-            print('an exception occured in breaking out the password', e)
-        password=str(password).strip("'")
         data = {
             "username":username,
             "password":password
         }
-        print(data)
         isAuthenticated = wsf.checkAuth(data)
         if isAuthenticated:
             config['isLoggedIn'] = True
@@ -52,21 +55,24 @@ def controller( route, request, serverAddress, client, conn=None):
                 'max-age':3600,
                 'current-time':time.time()
             }
-            ff.saveCookieData()
+            ff.saveCookieData(cookieObj)
             ff.updateConfig(config)
             return wsf.redirect(conn, serverAddress, '/dashboard', cookieObj)
         else:
             flashmsgs.flashMsg["login"] = "Invalid Username or Password"
             return wsf.redirect(conn, serverAddress, '/')
-    elif route =='/logout':
+    
+    # LOGOUT ROUTE
+    elif route =='/dashboard/logout':
         ff.setIsloggedIn(False)
+        ff.clearCookies()
         return wsf.redirect(conn, serverAddress, '/')
         pass
 
+    # RETURNS STYLE SHEETS AND IMAGES
     elif route == '/style.css':
         wsf.sendStyleSheet(conn)
         return True
-        
     elif route == '/favicon.ico':
         wsf.sendFavicon(conn)
         return True
@@ -75,7 +81,7 @@ def controller( route, request, serverAddress, client, conn=None):
         return True
     
     # PROTECTED ROUTES
-    if not isLoggedIn:
+    if not isValidCookie:
         return wsf.redirect(conn, serverAddress,'/')
     else:
         # RENDER METHODS
@@ -83,47 +89,43 @@ def controller( route, request, serverAddress, client, conn=None):
             return wsf.renderHTML(conn, dashboard(config))
         
         # ACTION METHODS
-        elif route == '/logout':
+        elif route == '/dashboard/logout':
             ff.setIsloggedIn(False)
+            ff.clearCookies()
             return wsf.redirect(conn, serverAddress, '/')
         
-        elif route == '/mqttStop':
+        elif route == '/dashboard/mqttStop':
             client.disconnect()
             return wsf.redirect(conn, serverAddress, '/dashboard')
         
-        elif route == '/mqttStart':
+        elif route == '/dashboard/mqttStart':
             client.connect()
             return wsf.redirect(conn, serverAddress, '/dashboard')
         
-        elif route == '/mqttRestart':
+        elif route == '/dashboard/mqttRestart':
             client.disconnect()
             time.sleep(3)
             client.connect()
             return wsf.redirect(conn, serverAddress, '/dashboard')
 
-        elif route == '/reset':
+        elif route == '/dashboard/reset':
             ff.setIsloggedIn(False)
             machine.reset()
             return wsf.redirect(conn, serverAddress, '/')
         
-        # UPDATE ROUTES (NEED HANDLERS, AND VALIDATIONS)
-        elif route == '/update/sensordata':
+        # UPDATE ROUTES 
+        elif route == '/dashboard/update/sensordata':
             currentAuth = ff.readAuthData()
-            hPass = None
             data = config
             newPass = ""
-            match = ure.search("sensorName=([^&]*)&username=([^&]*)&password=(.*)&confPassword=([^']*)", request)
-            # version 1.9 compatibility
             try:
-                sensorName = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                username = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                password = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                confirmPassword = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
+                postData = recDict['Post']
+                sensorName = postData['sensorName'].replace('+', " ")
+                username = postData['username']
+                password = postData['password']
+                confirmPassword = postData['confPassword']
             except Exception as e:
-                sensorName = match.group(1).replace("%3F", "?").replace("%21", "!")
-                username = match.group(2).replace("%3F", "?").replace("%21", "!")
-                password = match.group(3).replace("%3F", "?").replace("%21", "!")
-                confirmPassword = match.group(4).replace("%3F", "?").replace("%21", "!")
+                print('Something went wrong! ', e)
             
             if password and password != "":
                 if confirmPassword:
@@ -142,10 +144,8 @@ def controller( route, request, serverAddress, client, conn=None):
             else:
                 newUsername = currentAuth['username']
             
-            # Update auth data
             ff.updateAuthData({newUsername:newPass})
 
-            # Update Config Data
             data["sensorName"] = sensorName
             data["username"] = username
             data['thisUser'] = username
@@ -154,20 +154,18 @@ def controller( route, request, serverAddress, client, conn=None):
 
             return wsf.redirect(conn, serverAddress, '/dashboard')
 
-        elif route == '/update/sensorlocation':
+        elif route == '/dashboard/update/sensorlocation':
             isValid = True
-            match = ure.search("sensorLocation=([^&]*)&units=([^&]*)&xLoc=([+-]?\d+\.?\d*)&yLoc=([+-]?\d+\.?\d*)", request)
             try:
-                sensorLocation = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                units = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                xLoc = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                yLoc = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!")
+                postData = recDict['Post']
+                sensorLocation = postData['sensorLocation'].replace('+', " ")
+                units = postData['units']
+                xLoc = postData['xLoc']
+                yLoc = postData['yLoc']
             except Exception as e:
-                sensorLocation = match.group(1).replace("%3F", "?").replace("%21", "!").replace("%25", " ").replace('+', " ")
-                units = match.group(2).replace("%3F", "?").replace("%21", "!")
-                xLoc = match.group(3).replace("%3F", "?").replace("%21", "!")
-                yLoc = match.group(4).replace("%3F", "?").replace("%21", "!")
-            print("this is the request data for update sensor location: ", request)
+                print('Something went wrong! ',e)
+                flashmsgs.flashMsg['sensorLocationMsg'] = "Something went wrong submitting this request"
+                return wsf.redirect(conn, serverAddress, '/dashboard')
 
             # VALIDATIONS
             if len(sensorLocation) < 4:
@@ -194,33 +192,23 @@ def controller( route, request, serverAddress, client, conn=None):
 
             return wsf.redirect(conn, serverAddress, '/dashboard')
 
-        elif route == '/update/mqttsettings':
+        elif route == '/dashboard/update/mqttsettings':
             isValid = True
-            # fix the last regex
-            match = ure.search("mqttClientID=([^&]*)&mqttAddress=([^&]*)&mqttPort=([[+-]?\d+\.?\d*)&mqttUsername=([^&]*)&mqttPassword=(.*)&mqttRate=(\d+\.?\d*)", request)
             try:
-                mqttClientID = match.group(1).decode("utf-8").replace("%3F", "?").replace("%21", "!").replace("%25", " ").replace('+', " ")
-                mqttAddress = match.group(2).decode("utf-8").replace("%3F", "?").replace("%21", "!").replace("%3A", ":").replace('%2F', '/')
-                mqttPort = match.group(3).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                mqttUsername = match.group(4).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                mqttPassword = match.group(5).decode("utf-8").replace("%3F", "?").replace("%21", "!")
-                mqttRate = match.group(6).decode("utf-8").replace("%3F", "?").replace("%21", "!")
+                postData = recDict['Post']
+                mqttClientID = postData['mqttClientID'].replace('+', " ")
+                mqttAddress = postData['mqttAddress']
+                mqttPort = postData['mqttPort']
+                mqttRate = postData['mqttRate']
             except Exception as e:
-                mqttClientID = match.group(1).replace("%3F", "?").replace("%21", "!").replace("%25", " ").replace('+', " ")
-                mqttAddress = match.group(2).replace("%3F", "?").replace("%21", "!").replace("%3A", ":").replace('%2F', '/')
-                mqttPort = match.group(3).replace("%3F", "?").replace("%21", "!")
-                mqttUsername = match.group(4).replace("%3F", "?").replace("%21", "!")
-                mqttPassword = match.group(5).replace("%3F", "?").replace("%21", "!")
-                mqttRate = match.group(6).replace("%3F", "?").replace("%21", "!")
+                print('something went wrong! ', e)
 
             # VALIDATIONS
-            print("PRE VALIDATION:", mqttRate)
             if len(mqttClientID) < 4:
                 flashmsgs.flashMsg['mqttClientID'] = "MQTT Client ID must be longer than 4 characters!"
                 isValid = False
             try:
                 int(mqttAddress[0])
-                print(mqttAddress[0])
                 if not hf.isValidIPv4(mqttAddress):
                     flashmsgs.flashMsg['mqttAddress'] = 'Not a valid IPv4 address'
                     isValid = False
@@ -231,43 +219,47 @@ def controller( route, request, serverAddress, client, conn=None):
             if not ure.match('[1-10000]', mqttPort):
                 flashmsgs.flashMsg['mqttPort'] = "Not a valid port number, must be an integer!"
                 isValid = False
+            if not ure.match('[1-60000]', mqttRate):
+                flashmsgs.flashMsg['mqttRate'] = "MQTT message rate must be between 1 and 60000!"
+                isValid = False
+            
+            if isValid:
+                data = config
+                data['mqttClientID'] = mqttClientID 
+                data['mqttAddress'] = mqttAddress 
+                data['mqttPort'] = mqttPort 
+                data['mqttRate'] = mqttRate 
+                ff.updateConfig(data)
+            return wsf.redirect(conn, serverAddress, '/dashboard')
+        
+        elif route == '/dashboard/update/mqttpass':
+            isValid = True
+            try:
+                postData = recDict['Post']
+                mqttUsername = postData['mqttUsername']
+                mqttPassword = postData['mqttPassword']
+                mqttConfPassword = postData['mqttConfPassword']
+            except Exception as e:
+                print('something went wrong! ', e)
+                return wsf.redirect(conn, serverAddress, '/dashboard')
+
             if len(mqttUsername) < 4 and len(mqttUsername)>0:
                 flashmsgs.flashMsg['mqttUsername'] = "Username must be longer than 4 characters!"
                 isValid = False
             if len(mqttPassword)<8 and len(mqttPassword)>0:
                 flashmsgs.flashMsg['mqttPassword'] = "Password must be greater that 8 characters!"
                 isValid = False
-            if not ure.match('[1-60000]', mqttRate):
-                flashmsgs.flashMsg['mqttRate'] = "MQTT message rate must be between 1 and 60000!"
+            if mqttPassword != mqttConfPassword:
+                flashmsgs.flashMsg['mqttPassword'] = "Passwords must match!"
                 isValid = False
-            
-            if isValid:
-                print(mqttPassword ,mqttRate)
-                data = config
-                config['mqttClientID'] = mqttClientID 
-                config['mqttAddress'] = mqttAddress 
-                config['mqttPort'] = mqttPort 
-                config['mqttUsername'] = mqttUsername 
-                config['mqttPassword'] = mqttPassword 
-                config['mqttRate'] = mqttRate 
 
+            if isValid:
+                data = config
+                data['mqttUsername'] = mqttUsername
+                data['mqttPassword'] = mqttPassword
                 ff.updateConfig(data)
-            
-            
-            print("this is the request data for update mqtt settings: ", request)
             return wsf.redirect(conn, serverAddress, '/dashboard')
-        
-        
-        elif route == '/favicon.ico':
-            wsf.sendFavicon(conn)
-            return True
-        elif route == '/favicon.png':
-            wsf.sendFavicon(conn)
-            return True
-        elif route == '/style.css':
-            wsf.sendStyleSheet(conn)
-            return True
 
         else:
-            print('route not found')
+            print('(WARNING)(controller) Route Not Found!')
             return wsf.redirect(conn, serverAddress, '/dashboard')

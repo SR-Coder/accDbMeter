@@ -1,6 +1,5 @@
 import hashlib
 import binascii
-import time
 import ure
 
 def hashPasswords(password):
@@ -10,10 +9,9 @@ def hashPasswords(password):
         hashedPassword = hashedPassword.digest()
         hashedPassword = binascii.hexlify(hashedPassword)
         hashedPassword = hashedPassword.decode('utf-8')
-        print("Password Sucessfully Hashed")
         return hashedPassword
     except OSError as e:
-        print("Error Hashing Password", e)
+        print("(hashPasswords)Error Hashing Password", e)
         return False
     
 def statusLight(pin):
@@ -22,7 +20,7 @@ def statusLight(pin):
     Use this function to set flashing status lights.  Make sure to come up with a good plan 
     these lights
     '''
-    print(pin.value())
+    print('(statusLight) Pin Value: ',pin.value())
     if pin.value() == 0:
         pin.on()
     else:
@@ -38,17 +36,14 @@ def isFloat(string: str):
     
 def isValidIPv4(address:str):
     if ure.match("([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])", address):
-        print('valid IPv4 Address')
         return True
     else:
-        print('Invalid IPv4 Address')
+        print('(isValidIPv4)Invalid IPv4 Address')
         return False
 
 def isValidURL(url:str):
-    print(url)
     if ure.match('^((http|https)://)[-a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)$', url):
-        print('Valid URL')
         return True
     else:
-        print("Invalid URL")
+        print("(isValidURL)Invalid URL")
         return False

@@ -46,11 +46,10 @@ WIP
 - [ ] Add ability to change passwords and default ssid
 - [x] Ensure auth data is writen to secrets file not user config file
 - [x] Require password to enter the Config page
-- [ ] Add a local domain name so that this device can be connected to without knowing the IP
 - [ ] Connect config file to mqtt stuff
-- [ ] Add timer interupt to log out after 10 min (short term securty fix)
+- [x] Cookie Based Session
 
 ## Version 2
-- [ ] Address Security Concerns:
-    - [ ] Add session or token to tie login to individual user
+- [x] Address Security Concerns:
+    - [x] Add session or token to tie login to individual user
 - [ ] Convert structure to a "Class" object

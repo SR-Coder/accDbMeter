@@ -69,10 +69,7 @@ def dashboard(data, args={}):
     - mqttUsername
     - mqttPassword
     - mqttRate
-    """
-    print(data)
-    
-    
+    """    
     if 'units' in data:
         if data['units'] == 'feet':
             isFeet = 'selected'
@@ -155,38 +152,38 @@ def dashboard(data, args={}):
                             <p>MQTT Address: {mqttAddress}</p>
                         </div>
                     </div>
-                    <form action="/logout" method="post">
+                    <form action="/dashboard/logout" method="post">
                         <button type="submit">Logout</button>
                     </form>
                 </header>
                 <main>
                     <div class="config-header">
                         <h1>DB Sensor Configuration</h1>
-                        <a class="btn" href="/restart">Restart Sensor</a>
-                        <a class="btn" href="/mqttStop">Stop MQTT</a>
-                        <a class="btn" href="/mqttStart">Start MQTT</a>
-                        <a class="btn" href="/mqttRestart">Restart MQTT</a>
+                        <a class="btn" href="/dashboard/restart">Restart Sensor</a>
+                        <a class="btn" href="/dashboard/mqttStop">Stop MQTT</a>
+                        <a class="btn" href="/dashboard/mqttStart">Start MQTT</a>
+                        <a class="btn" href="/dashboard/mqttRestart">Restart MQTT</a>
                     </div>
                     <div class="form-container">
                         
-                        <form action="/update/sensordata" method="post" >
+                        <form action="/dashboard/update/sensordata" method="post" >
                             <h2>Device Information</h2>
                             <p class="warning">{passwordMessages}</p>
                             <div class="form-item">
                                 <label class="input-label" for="sensorName">Sensor Name</label>
-                                <input class="text-input" type="text" name="sensorName" id="sensorName" value="{sensorName}">
+                                <input class="text-input" type="text" name="sensorName" id="sensorName" maxlength="16" value="{sensorName}">
                             </div>
                             <div class="form-item">
                                 <label class="input-label" for="username">Username</label>
-                                <input class="text-input" type="text" name="username" id="username" value="{username}">
+                                <input class="text-input" type="text" name="username" id="username" maxlength="16" value="{username}">
                             </div>
                             <div class="form-item">
                                 <label class="input-label" for="password">Password</label>
-                                <input class="text-input" type="password" name="password" id="password" >
+                                <input class="text-input" type="password" name="password" maxlength="16" id="password" >
                             </div>
                             <div class="form-item">
                                 <label class="input-label" for="confPassword">Confirm Password</label>
-                                <input class="text-input" type="password" name="confPassword" id="confPassword" >
+                                <input class="text-input" type="password" name="confPassword" maxlength="16" id="confPassword" >
                             </div>
                             <div class="center">
                                 <button class="button-submit" type="submit">Submit</button>
@@ -197,12 +194,12 @@ def dashboard(data, args={}):
                             </div>
                             <h2>Physical Location</h2>
                             <p class="warning">{locationMessages}</p>
-                        <form action="/update/sensorlocation" method="post">
+                        <form action="/dashboard/update/sensorlocation" method="post">
                             <div class="form-item">
                                 <label class="input-label tooltip" for="sensorLocation">Location Name
                                     <span class="tooltiptext">Provide a descriptive location for this sensor.</span>
                                 </label>
-                                <input class="text-input" type="text" name="sensorLocation" id="sensorLocation" value="{sensorLocation}">
+                                <input class="text-input" type="text" name="sensorLocation" id="sensorLocation" maxlength="32" value="{sensorLocation}">
                             </div>
                             <!-- <h3>Distance from left to right (X), and front to back (Y)</h3> -->
                             <div class="form-item">
@@ -218,13 +215,13 @@ def dashboard(data, args={}):
                                 <label class="input-label tooltip" for="xLoc">X - Location
                                     <span class="tooltiptext">Distance left or right from center stage (Stage Right is Negative)</span>
                                 </label>
-                                <input class="text-input" type="number" name="xLoc" id="xLoc" value="{xLoc}">
+                                <input class="text-input" type="number" name="xLoc" id="xLoc" maxlength="4" value="{xLoc}">
                             </div>
                             <div class="form-item">
                                 <label class="input-label tooltip" for="yLoc">Y - Location
                                     <span class="tooltiptext">Distance from the front of the stage (onstage is negative)</span>
                                 </label>
-                                <input class="text-input" type="number" name="yLoc" id="yLoc" value="{yLoc}">
+                                <input class="text-input" type="number" name="yLoc" id="yLoc" maxlength="4" value="{yLoc}">
                             </div>
                             <div class="center">
                                 <button class="button-submit" type="submit">Submit</button>
@@ -235,12 +232,12 @@ def dashboard(data, args={}):
                             </div>
                             <h2>MQTT Server Settings</h2>
                             <p class="warning">{mqttMessages}</p>
-                        <form action="/update/mqttsettings" method="post">
+                        <form action="/dashboard/update/mqttsettings" method="post">
                             <div class="form-item">
                                 <label class="input-label tooltip" for="mqttClientID">MQTT Client ID 
                                     <span class="tooltiptext">MQTT Client ID. Pick a unique name</span>
                                 </label>
-                                <input class="text-input" type="text" name="mqttClientID" id="mqttClientID" value="{mqttClientID}">
+                                <input class="text-input" type="text" name="mqttClientID" id="mqttClientID" maxlength="16" value="{mqttClientID}">
                             </div>
                             <div class="form-item">
                                 <label class="input-label tooltip" for="mqttAddress">MQTT Server 
@@ -254,27 +251,12 @@ def dashboard(data, args={}):
                                     <span class="tooltiptext">Port Number for MQTT Server</span>
                                 </label>
                                 
-                                <input class="text-input" type="text" name="mqttPort" id="mqttPort" value="{mqttPort}">
-                            </div>
-                            <div class="form-item">
-                                <label class="input-label tooltip" for="mqttUsername">MQTT Username 
-                                    <span class="tooltiptext">Your username for logging into the MQTT Server</span>
-                                </label>
-                                
-                                <input class="text-input" type="text" name="mqttUsername" id="mqttUsername" value="{mqttUsername}">
-                            </div>
-                            <div class="form-item">
-                                <label class="input-label tooltip" for="mqttPassword">MQTT Password 
-                                    <span class="tooltiptext">Password for logging into MQTT Server.  WARNING THIS WILL BE SAVED UNHASHED IN THE CONFIG.JSON FILE</span>
-                                </label>
-                                
-                                <input class="text-input" type="text" name="mqttPassword" id="mqttPassword" value="{mqttPassword}">
+                                <input class="text-input" type="text" name="mqttPort" id="mqttPort" maxlength="4" value="{mqttPort}">
                             </div>
                             <div class="form-item">
                                 <label class="input-label tooltip" for="mqttRate">MQTT Msg Rate 
                                     <span class="tooltiptext">Select how many times per second to send messages</span>
                                 </label>
-                                
                                 <select name="mqttRate" id="mqttRate">
                                     <option value="0" {rateOff}>Off</option>
                                     <option value=".016" {rate1}>1 per min</option>
@@ -287,6 +269,33 @@ def dashboard(data, args={}):
                                     <option value="20000" {rate8}>20000hz</option>
                                     <option value="40000" {rate9}>40000hz</option>
                                 </select>
+                            </div>
+                            <div class="center">
+                                <button class="button-submit" type="submit">Submit</button>
+                            </div>
+                        </form>
+                        <div class="center">
+                            <hr>
+                        </div>
+                        <form action="/dashboard/update/mqttpass" method="post">
+                            <div class="form-item">
+                                <label class="input-label tooltip" for="mqttUsername">MQTT Username 
+                                    <span class="tooltiptext">Your username for logging into the MQTT Server</span>
+                                </label>
+                                
+                                <input class="text-input" type="text" name="mqttUsername" id="mqttUsername" maxlength="16" value="{mqttUsername}">
+                            </div>
+                            <div class="form-item">
+                                <label class="input-label tooltip" for="mqttPassword">MQTT Password 
+                                    <span class="tooltiptext">Password for logging into MQTT Server.  WARNING THIS WILL BE SAVED UNHASHED IN THE CONFIG.JSON FILE</span>
+                                </label>
+                                <input class="text-input" type="text" name="mqttPassword" id="mqttPassword" maxlength="16" value="{mqttPassword}">
+                            </div>
+                            <div class="form-item">
+                                <label class="input-label tooltip" for="mqttConfPassword">MQTT Password 
+                                    <span class="tooltiptext">Password for logging into MQTT Server.  WARNING THIS WILL BE SAVED UNHASHED IN THE CONFIG.JSON FILE</span>
+                                </label>
+                                <input class="text-input" type="text" name="mqttConfPassword" maxlength="16" id="mqttConfPassword">
                             </div>
                             <div class="center">
                                 <button class="button-submit" type="submit">Submit</button>
