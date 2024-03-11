@@ -3,6 +3,7 @@ from time import sleep
 import machine
 import gc
 import time
+import _thread
 import htmlTemplates
 import webServerFunctions as wsf
 import sys
@@ -11,10 +12,11 @@ import fileFunctions as ff
 import helperFunctions as hf
 from myController import controller
 
+global run_core_1
+run_core_1 = False
 
 
-
-global serverAddress 
+global termSig
 try:
     import usocket as socket
 except:
@@ -86,8 +88,13 @@ client = startMqttClient(configData['mqttClientID'], configData['mqttAddress'], 
 
 ledPin = False
 # Main While loop for doing stuff 
+
+
+
 prevTime = time.time()
 cookieTimeout = configData['c-timeout']
+run_core_1 = True
+# s.setblocking(False)
 while True:
 
     # Check for expired cookies
@@ -100,24 +107,16 @@ while True:
         # FREE FRAGEMENTED MEM
         if gc.mem_free() < 102000:
             gc.collect()
-
-        # REPLACE THIS WITH A FUNCTION
+    
         conn, addr = s.accept()
+        
         conn.settimeout(3.0)
-        # print('Received HTTP Request')
         request = conn.recv(1024)
         conn.settimeout(None)
-
-        # new here
         recDict = wsf.parseRequest(request)
-
-        request = request.decode('utf-8')
-
         response = controller(recDict, serverAddress, client, conn)
-
-        # print('calling controller res= ', response)
         conn.close()
-        # #################################
+
     except OSError as e:
         # ON ERROR CLOSE CLIENT CONN
         print('Connection closed',e)
@@ -129,8 +128,12 @@ while True:
         config = ff.readConfig()
         config['isLoggedIn'] = False
         ff.updateConfig(config)
+        ff.clearCookies()
         s.close()
         led0.off()
         led1.off()
         led.off()
         sys.exit()
+    
+
+
