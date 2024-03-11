@@ -1,6 +1,6 @@
 # Raspberry Pi Pico W
 
-This template provides a light weight Wi-Fi Manager using MicroPython.  
+This template provides a light weight Wi-Fi Manager using MicroPython. Development starting with esp32 and the teensy4.1 with esp32 wifi over spi.  While the micropython webserver works adquately, the implementation with micropython is slow, the mqtt and webserver sockets have unexpected interactions that lead to negative effects.    
 
 
 
