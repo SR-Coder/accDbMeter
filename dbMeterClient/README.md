@@ -26,6 +26,14 @@ Then we can send messages using:
 
 With the defaults in the webapp you should see the messages appear.
 
+## Running test messages
+From the dbMeterClient directory run.
+`node sample_messages/send_messages.js`
+
+It's a simple file that contains the list of sensors to send from and the interval
+for how frequently they are sent at the top of the file. Feel free to edit to add
+more sensors, or change the interval.
+
 ## MQTT integration
 
 This is based on the guide here:
