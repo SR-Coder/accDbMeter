@@ -1,46 +1,53 @@
+import PropTypes from "prop-types";
 import { useState } from "react";
+import "../../style/dbmeter.css";
 
-function Dbmeter() {
-    const title = "Front";
-    const [decibel, setDecibel] = useState(0);
+function NumberFormatter({ number }) {
+  const formattedNumber = String(number).padStart(3, "0");
 
-    let number = 0;
+  const characters = formattedNumber.split("");
 
-    const intervalId = setInterval(() => {
-    number += 5;
-    console.log(number); // You can replace this with your desired logic or action.
-    setDecibel(number);
-
-    if (number >= 95) {
-        clearInterval(intervalId); // Stop the interval when the number reaches 95.
-    }
-    }, getRandomDelay());
-
-    function getRandomDelay() {
-    // Generate a random delay between 3 to 5 seconds (in milliseconds).
-    return Math.floor(Math.random() * (5000 - 3000 + 1) + 3000);
-    }
-
-
-    const getDecibelLevel = () => {
-        setDecibel(5);
-    }
-
-    getDecibelLevel()
-    
-    return (
-        <div className='meter'>
-            <h1 className="meter-name">
-                { title }
-            </h1>
-            <div className="meter-output">
-                <p>
-                    { decibel }
-                </p>
-            </div>
-        </div>
-    )
+  return (
+    <div className="meter-output-screen-num">
+      {characters.map((char, index) => (
+        <p key={index} className="meter-output-screen-character">
+          {char}
+        </p>
+      ))}
+    </div>
+  );
 }
 
-export default Dbmeter
+NumberFormatter.propTypes = {
+  number: PropTypes.number.isRequired,
+  styling: PropTypes.string,
+};
 
+function Dbmeter() {
+  const title = "Front";
+  const [decibel, setDecibel] = useState(0);
+
+  const updateDecibel = () => {
+    setDecibel(decibel + 5);
+  };
+
+  return (
+    <>
+      <button onClick={updateDecibel}>Play</button>
+      <div className="meter">
+        <h1 className="meter-name">{title}</h1>
+        <div className="meter-output">
+          <div className="meter-output-color-ring">
+            <div className="meter-output-screen">
+              <p className="meter-output-screen-text">{decibel}</p>
+              {/* <NumberFormatter number={decibel} /> */}
+              <NumberFormatter number={0} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default Dbmeter;
