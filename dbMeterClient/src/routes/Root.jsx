@@ -1,4 +1,4 @@
-import "../style/Style.css";
+import "../style/Style.scss";
 import Dbmeter from "../components/DBMeter/dbmeter";
 
 function App() {

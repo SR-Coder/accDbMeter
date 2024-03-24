@@ -1,0 +1,25 @@
+.comparable {
+  background-color: #222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 2em;
+  margin-top: -1em;
+  border-radius: 0.25em;
+  &-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    svg {
+      display: block;
+      height: 1.75em;
+      width: 1.75em;
+    }
+    path {
+      fill: #ffffff !important;
+    }
+  }
+  &-text {
+  }
+}
