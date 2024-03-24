@@ -68,9 +68,15 @@ void setup()
   WifiManager.fallbackToSoftAp();
   WifiManager.attachWebServer(&webServer);
 
-  webServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/plain", "Hello World");
-  });
+  webServer
+    .serveStatic("/", SPIFFS, "/www")
+    .setDefaultFile("index.html")
+    .setFilter(ON_STA_FILTER);
+
+  webServer
+    .serveStatic("/", SPIFFS, "/ap")
+    .setDefaultFile("index.html")
+    .setFilter(ON_AP_FILTER);
 
   webServer.on("/home", HTTP_GET, [](AsyncWebServerRequest *request){
     Serial.print(request->method());
@@ -90,7 +96,7 @@ void setup()
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  delay(500);
+  delay(200);
 
   if (false) {
     WifiManager.runSoftAP();
