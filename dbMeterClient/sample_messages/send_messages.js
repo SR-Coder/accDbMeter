@@ -1,5 +1,5 @@
 import mqtt from 'mqtt';
-const sendMessageInterval = 100;
+const sendMessageInterval = 500;
 const sensors = [
     { "sensorId": 12, "sensorName": "Front of Church" },
     { "sensorId": 23, "sensorName": "Middle of Church" },
