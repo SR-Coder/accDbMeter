@@ -4,6 +4,7 @@ import mqtt from "mqtt";
 
 function TheRack() {
   const [decibel, setDecibel] = useState(0);
+  const [message, setMessage] = useState(null);
   const sensorId = 12;
 
   useEffect(() => {
@@ -15,21 +16,20 @@ function TheRack() {
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
-    // this code lives in the rack.
-    // the rack should decide which dbMeter to call setDecibel on.
     const client = mqtt.connect("ws://localhost:8885", mqttOptions);
     client.on("connect", () => {
-      console.log("connected");
+      // console.log("connected");
       client.subscribe(topic, (err) => {
         if (!err) {
           console.log("subscribed");
           client.on("message", (topic, message) => {
-            console.log("M", message);
             const jsonMessage = JSON.parse(message);
             const dbLevel = jsonMessage.dbLevel;
+            const _message = jsonMessage;
+            // console.log("M", _message);
             if (sensorId == jsonMessage.sensorId) {
               setDecibel(parseInt(dbLevel));
-
+              setMessage(_message);
               client.unsubscribe(topic, (err) => {
                 !err && console.log("unsubscribed");
               });
@@ -38,14 +38,27 @@ function TheRack() {
         }
       });
     });
-    return () => {
-      // Disconnect from MQTT broker when the component unmounts
-      client.end();
-    };
+    // return () => {
+    //   // Disconnect from MQTT broker when the component unmounts
+    //   client.end();
+    // };
   });
 
   return (
     <div>
+      <p>
+        { message.sensorId }
+      </p>
+      <p>
+      { message.dbLevel }
+      </p>
+    <p>
+{message.sensorName}
+    </p>
+    <p>
+{message.timestamp}
+    </p>
+
       <Dbmeter decibelLevel={decibel} />
     </div>
   );

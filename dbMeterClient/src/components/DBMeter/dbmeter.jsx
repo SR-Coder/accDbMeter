@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import "./dbmeter.scss";
 
 function Dbmeter({ decibelLevel }) {
+  console.log(decibelLevel);
   const title = "Front";
   const [decibel, setDecibel] = useState(0);
 
