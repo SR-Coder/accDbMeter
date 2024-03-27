@@ -44,7 +44,6 @@ Icon.propTypes = {
 };
 
 const getFilledIcon = (name) => {
-  console.log("name", name);
   switch (name) {
     case "alarm":
       return <AlarmFilledIcon />;
@@ -73,7 +72,6 @@ const getFilledIcon = (name) => {
 };
 
 const getOutlinedIcon = (name) => {
-  console.log("name", name);
   switch (name) {
     case "alarm":
       return <AlarmOutlinedIcon />;

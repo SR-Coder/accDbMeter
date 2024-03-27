@@ -25,3 +25,10 @@
   font-weight: bold;
   font-style: italic;
 }
+
+@font-face {
+  font-family: "DigitalDisplay";
+  src: url("../assets/fonts/DigitalDisplayRegular-ODEO.ttf") format("truetype");
+  font-weight: bold;
+  font-style: italic;
+}

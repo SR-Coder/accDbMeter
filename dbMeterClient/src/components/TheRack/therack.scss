@@ -1,0 +1,7 @@
+.the-rack {
+  display: flex;
+  &-sensors {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
