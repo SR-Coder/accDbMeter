@@ -19,8 +19,7 @@ function Comparables({ decibel }) {
   useEffect(() => {
     const comparable = findComparable(decibel);
     setClosestComparable(comparable);
-    console.log(closestComparable);
-  });
+  }, [decibel]);
 
   return (
     <div className="comparable">
