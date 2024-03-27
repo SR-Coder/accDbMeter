@@ -1,11 +1,11 @@
 import "../style/Style.scss";
-import Dbmeter from "../components/DBMeter/dbmeter";
+import TheRack from "../components/TheRack/TheRack";
 
 function App() {
   return (
     <>
       <h1>ACC DB Meter Application</h1>
-      <Dbmeter />
+      <TheRack />
 
       <ul>
         <li>
