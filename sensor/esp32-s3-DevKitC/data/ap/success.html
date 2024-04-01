@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Success Page</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Countdown timer
+        var seconds = 10;
+        function countdown() {
+            document.getElementById("timer").innerHTML = seconds;
+            if (seconds === 0) {
+                // Redirect to restart route
+                window.location.href = "/restart";
+            } else {
+                seconds--;
+                setTimeout(countdown, 1000);
+            }
+        }
+        countdown();
+    </script>
+</head>
+<body>
+    <h1>Success Page</h1>
+    <p>SSID added successfully!</p>
+    <p>Redirecting in <span id="timer">10</span> seconds...</p>
+    <button onclick="window.location.href = '/restart';">Restart Now</button>
+    <button onclick="window.location.href = '/';">Cancel</button>
+</body>
+</html>
