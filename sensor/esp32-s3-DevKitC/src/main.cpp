@@ -2,6 +2,7 @@
 #define SPIFFS LittleFS
 #endif
 
+#define SHOW_TIME_PERIOD 1000
 #define LED LED_BUILTIN
 #define rLED 
 
@@ -13,8 +14,7 @@
 #include <HardwareSerial.h>
 #include <WiFi.h> 
 #include <PubSubClient.h>
-
-// #include "processor.h"
+#include <ESPNtpClient.h>
 
 // FILESYSTEM STUFF
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -63,10 +63,11 @@ AsyncWebServer webServer(80);
 
 // create structure to hold file data
 struct config_t {
+    String sensor_UUID;
     String sensor_name;
     String sensor_username;
     String sensor_password;
-    String sensor_location_name;
+    String sensor_location;
     String units;
     int x_loc;
     int y_loc;
@@ -79,48 +80,40 @@ struct config_t {
 
 config_t my_config;
 
-String processor(const String& var){
-    if(var == "SENSOR_NAME"){
-        return String(my_config.sensor_name);
-    }
-    if(var == "USER_NAME"){
-        return String(my_config.sensor_username);
-    }
-    if(var == "SENSOR_PASSWORD"){
-        return String(my_config.sensor_password);
-    }
-    if(var == "LOCATION_NAME"){
-        return String(my_config.sensor_location_name);
-    }
-    if(var == "UNITS"){
-        return String(my_config.units);
-    }
-    if(var == "X_LOC"){
-        return String(my_config.x_loc);
-    }
-    if(var == "Y_LOC"){
-        return String(my_config.y_loc);
-    }
-    if(var == "MQTT_SERVER"){
-        return String(my_config.mqtt_server);
-    }
-    if(var == "MQTT_PORT"){
-        return String(my_config.mqtt_port);
-    }
-    if(var == "MQTT_USER"){
-        return String(my_config.mqtt_username);
-    }
-    if(var == "MQTT_PASSWORD"){
-        return String(my_config.mqtt_password);
-    }
-    if(var == "MQTT_RATE"){
-        return String(my_config.mqtt_rate);
-    }
-    return String();
+// a function to write to the config file
+void writeConfig(const config_t& config, const char* filename){
+  File configFile = SPIFFS.open(filename, "w");
+  if (!configFile){
+    Serial.println("Failed to open config file for writing");
+    return;
+  }
+
+  JsonDocument doc;
+  doc["sensor_name"] = config.sensor_name;
+  doc["sensor_username"] = config.sensor_username;
+  doc["sensor_password"] = config.sensor_password;
+  doc["sensor_location"] = config.sensor_location;
+  doc["units"] = config.units;
+  doc["x_loc"] = config.x_loc;
+  doc["y_loc"] = config.y_loc;
+  doc["mqtt_server"] = config.mqtt_server;
+  doc["mqtt_port"] = config.mqtt_port;
+  doc["mqtt_username"] = config.mqtt_username;
+  doc["mqtt_password"] = config.mqtt_password;
+  doc["mqtt_rate"] = config.mqtt_rate;
+
+  serializeJson(doc, configFile);
+  configFile.close();
+  doc.clear();
+  return;
 }
+
 
 void setup()
 {
+
+  NTP.setTimeZone(TZ_America_Los_Angeles);
+  NTP.begin();
 
   // Setup the pins for the led
   pinMode(LED, OUTPUT);
@@ -157,15 +150,16 @@ void setup()
   strncpy(mqtt_name, doc["mqtt_name"], sizeof(mqtt_name));
   mqtt_name[sizeof(mqtt_name) - 1] = '\0';
 
-  const char* username = doc["username"];
-  const char* password = doc["password"];
+  const char* sensor_username = doc["sensor_username"];
+  const char* sensor_password = doc["sensor_password"];
   mqtt_rate = doc["mqtt_rate"].as<int>();
 
   // add values to struct
+  my_config.sensor_UUID = doc["sensor_UUID"].as<String>();
   my_config.sensor_name = doc["sensor_name"].as<String>();
   my_config.sensor_username = doc["sensor_username"].as<String>();
   my_config.sensor_password = doc["sensor_password"].as<String>();
-  my_config.sensor_location_name = doc["sensor_location_name"].as<String>();
+  my_config.sensor_location = doc["sensor_location"].as<String>();
   my_config.units = doc["units"].as<String>();
   my_config.x_loc = doc["x_loc"].as<int>();
   my_config.y_loc = doc["y_loc"].as<int>();
@@ -175,6 +169,7 @@ void setup()
   my_config.mqtt_password = doc["mqtt_password"].as<String>();
   my_config.mqtt_rate = doc["mqtt_rate"].as<int>();
 
+  configFile.close();
 
 
 // WIFI MANAGER SETUP
@@ -186,7 +181,7 @@ void setup()
   webServer
     .serveStatic("/", SPIFFS, "/www")
     .setDefaultFile("index.html")
-    .setAuthentication(username, password)
+    .setAuthentication(sensor_username, sensor_password)
     .setFilter(ON_STA_FILTER);
 
   webServer
@@ -247,6 +242,56 @@ void setup()
     request->redirect("/");
   });
 
+  webServer.on("/update/sensordata", HTTP_POST, [](AsyncWebServerRequest *request){
+    bool isValid = true;
+    int params = request->params();
+    for(int i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->name() == "sensor_name"){
+        my_config.sensor_name = p->value();
+      } else if (p->name() == "sensor_username"){
+        my_config.sensor_username = p->value();
+      } else if (p->name() == "sensor_password"){
+        my_config.sensor_password = p->value();
+      } else if (p->name() == "sensor_confPassword"){
+        String confPassword = p->value();
+        if(confPassword != my_config.sensor_password){
+          isValid = false;
+        }
+      } else {
+        Serial.println("Debug Data (Name): " + p->name() + " (Value): " + p->value());
+        isValid = false;
+      }
+    }
+    if(isValid){
+      writeConfig(my_config, "/secrets/config.json");
+
+      request->redirect("/");
+    } else {
+      request->send(400, "text/plain", "Bad Request, failed the validity test");
+    }
+  });
+
+  webServer.on("/api/config", HTTP_GET, [](AsyncWebServerRequest *request){
+    String json;
+    JsonDocument doc;
+    doc["sensor_name"] = my_config.sensor_name;
+    doc["sensor_username"] = my_config.sensor_username;
+    doc["sensor_password"] = my_config.sensor_password;
+    doc["sensor_location"] = my_config.sensor_location;
+    doc["units"] = my_config.units;
+    doc["x_loc"] = my_config.x_loc;
+    doc["y_loc"] = my_config.y_loc;
+    doc["mqtt_server"] = my_config.mqtt_server;
+    doc["mqtt_port"] = my_config.mqtt_port;
+    doc["mqtt_username"] = my_config.mqtt_username;
+    doc["mqtt_password"] = my_config.mqtt_password;
+    doc["mqtt_rate"] = my_config.mqtt_rate;
+    serializeJson(doc, json);
+    request->send(200, "application/json", json);
+    doc.clear();
+  });
+
   // Serve the Favicon file
   webServer
     .serveStatic("/favicon.ico", SPIFFS, "/www")
@@ -300,9 +345,7 @@ void setup()
   }
 }
 
-int counter = 0;
 unsigned long lastTime = 0;
-
 
 void reconnect(){
   client.setServer(mqtt_server, 1885);
@@ -338,9 +381,17 @@ void ledRed(){
 
 void loop() 
 {
-  // put your main code here, to run repeatedly:
 
-  String msg = "Message Number: " + String(counter);
+  JsonDocument doc;
+  doc["sensorId"] = ESP.getEfuseMac(); 
+  doc["sensor_name"] = my_config.sensor_name;
+  doc["dbLevel"] = random(45, 120);
+  doc["timeStamp"] = NTP.getTimeDateStringUs();
+
+  String msg;
+  serializeJson(doc, msg);
+
+  doc.clear();
 
   if(client.connected() && run_mqtt){
     if(isOn){
@@ -348,8 +399,7 @@ void loop()
     } else {
       ledOn();
     };
-    client.publish("test", msg.c_str());
-    counter++;
+    client.publish("DBMeter", msg.c_str());
   } else {
     Serial.println("Client not connected");
     ledRed();
