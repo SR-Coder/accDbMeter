@@ -10,7 +10,11 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
 ## Running the app in dev mode
+
+copy the .env.sample file to .env.local
+
 `npm run dev`
+
 
 ## Mosquitto
 Install mosquitto using:
