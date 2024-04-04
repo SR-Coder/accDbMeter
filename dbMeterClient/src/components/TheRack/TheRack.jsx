@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Dbmeter from "../DBMeter/Dbmeter";
+import Dbmeter from "../DBMeter/dbmeter";
 import mqtt from "mqtt";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import "./therack.scss";
@@ -15,7 +15,7 @@ function TheRack() {
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
-    const client = mqtt.connect("ws://localhost:8885", mqttOptions);
+    const client = mqtt.connect(import.meta.env.VITE_MQTT_URL, mqttOptions);
 
     client.on("connect", () => {
       client.subscribe(topic, (err) => {
