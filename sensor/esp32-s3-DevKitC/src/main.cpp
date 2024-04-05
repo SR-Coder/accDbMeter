@@ -15,6 +15,8 @@
 #include <WiFi.h> 
 #include <PubSubClient.h>
 #include <ESPNtpClient.h>
+#include "dbMeter.h"
+#include <Wire.h>
 
 // FILESYSTEM STUFF
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -49,10 +51,9 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 }
 
 // MQTT Stuff
-// const char* mqtt_server = "192.168.1.187";
 WiFiClient espClient;
 PubSubClient client(espClient);
-char mqtt_name[128];
+// char mqtt_name[128];
 char mqtt_server[128];
 int mqtt_rate;
 bool run_mqtt = true;
@@ -61,7 +62,7 @@ bool run_mqtt = true;
 WIFIMANAGER WifiManager;
 AsyncWebServer webServer(80);
 
-// create structure to hold file data
+// create structure to hold config file data
 struct config_t {
     String sensor_UUID;
     String sensor_name;
@@ -89,6 +90,7 @@ void writeConfig(const config_t& config, const char* filename){
   }
 
   JsonDocument doc;
+  doc["sensor_UUID"] = config.sensor_UUID;
   doc["sensor_name"] = config.sensor_name;
   doc["sensor_username"] = config.sensor_username;
   doc["sensor_password"] = config.sensor_password;
@@ -102,10 +104,30 @@ void writeConfig(const config_t& config, const char* filename){
   doc["mqtt_password"] = config.mqtt_password;
   doc["mqtt_rate"] = config.mqtt_rate;
 
-  serializeJson(doc, configFile);
-  configFile.close();
+  char* buffer[measureJson(doc) + 1];
+  serializeJson(doc, buffer, measureJson(doc));
+  
+  
+  Serial.println("***************************************");
+  Serial.println("Config File Size: ");
+  Serial.println(measureJson(doc));
+  configFile.write((uint8_t*)buffer, measureJson(doc));
+  Serial.println("\nEND OF FILE!");
+  Serial.println("***************************************");
   doc.clear();
   return;
+}
+
+// Serial I2C Setup for DB Sensor
+TwoWire dbmeter = TwoWire(0);
+
+// Read from the register of the DB Sensor
+uint8_t dbmeter_readreg(TwoWire *dev, uint8_t regAddr){
+  dev->beginTransmission(DBM_ADDR);
+  dev->write(regAddr);
+  dev->endTransmission();
+  dev->requestFrom(DBM_ADDR, 1);
+  return dev->read();
 }
 
 
@@ -147,8 +169,6 @@ void setup()
 
   strncpy(mqtt_server, doc["mqtt_server"], sizeof(mqtt_server));
   mqtt_server[sizeof(mqtt_server) - 1] = '\0';
-  strncpy(mqtt_name, doc["mqtt_name"], sizeof(mqtt_name));
-  mqtt_name[sizeof(mqtt_name) - 1] = '\0';
 
   const char* sensor_username = doc["sensor_username"];
   const char* sensor_password = doc["sensor_password"];
@@ -242,6 +262,8 @@ void setup()
     request->redirect("/");
   });
 
+
+  // UPDATE SENSOR CONFIG DATA
   webServer.on("/update/sensordata", HTTP_POST, [](AsyncWebServerRequest *request){
     bool isValid = true;
     int params = request->params();
@@ -271,6 +293,62 @@ void setup()
       request->send(400, "text/plain", "Bad Request, failed the validity test");
     }
   });
+
+  webServer.on("/update/sensorlocation", HTTP_POST, [](AsyncWebServerRequest *request){
+    bool isValid = true;
+    int params = request->params();
+    for(int i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->name() == "sensor_location"){
+        my_config.sensor_location = p->value();
+      } else if (p->name() == "units"){
+        my_config.units = p->value();
+      } else if (p->name() == "x_loc"){
+        my_config.x_loc = p->value().toInt();
+      } else if (p->name() == "y_loc"){
+        my_config.y_loc = p->value().toInt();
+      } else {
+        Serial.println("Debug Data (Name): " + p->name() + " (Value): " + p->value());
+        isValid = false;
+      }
+    }
+    if(isValid){
+      writeConfig(my_config, "/secrets/config.json");
+      request->redirect("/");
+    } else {
+      request->send(400, "text/plain", "Bad Request, failed the validity test");
+    }
+  });
+
+  webServer.on("/update/mqttsettings", HTTP_POST, [](AsyncWebServerRequest *request) {
+    bool isValid = true;
+    int params = request->params();
+    for(int i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->name() == "mqtt_server"){
+        my_config.mqtt_server = p->value();
+      } else if (p->name() == "mqtt_port"){
+        my_config.mqtt_port = p->value().toInt();
+      } else if (p->name() == "mqtt_user"){
+        my_config.mqtt_username = p->value();
+      } else if (p->name() == "mqtt_pass"){
+        my_config.mqtt_password = p->value();
+      } else if (p->name() == "mqtt_rate"){
+        my_config.mqtt_rate = p->value().toInt();
+      } else {
+        Serial.println("Debug Data (Name): " + p->name() + " (Value): " + p->value());
+        isValid = false;
+      }
+    }
+    if(isValid){
+      writeConfig(my_config, "/secrets/config.json");
+      request->redirect("/");
+    } else {
+      request->send(400, "text/plain", "Bad Request, failed the validity test");
+    }
+  });
+
+  // SENSOR API
 
   webServer.on("/api/config", HTTP_GET, [](AsyncWebServerRequest *request){
     String json;
@@ -333,8 +411,8 @@ void setup()
       client.setServer(mqtt_server, 1885);
       while (!client.connected()) {
           Serial.println("Connecting to MQTT...");
-          Serial.println(mqtt_name);
-          if (client.connect(mqtt_name)) {
+          Serial.println(mqtt_server);
+          if (client.connect(mqtt_server)) {
               Serial.println("connected"); 
           } else {
               Serial.print("failed with state ");
@@ -343,6 +421,21 @@ void setup()
           }
       }
   }
+
+
+  // SETUP DB SENSOR
+  dbmeter.begin(I2C_SDA, I2C_SCL, 100000);
+  uint8_t dbm_version = dbmeter_readreg(&dbmeter, DBM_REG_VERSION);
+  Serial.printf("Version = 0x%02X\r\n", dbm_version);
+
+  uint8_t id[4];
+  id[0] = dbmeter_readreg(&dbmeter, DBM_REG_ID3);
+  id[1] = dbmeter_readreg(&dbmeter, DBM_REG_ID2);
+  id[2] = dbmeter_readreg(&dbmeter, DBM_REG_ID1);
+  id[3] = dbmeter_readreg(&dbmeter, DBM_REG_ID0);
+
+  Serial.printf("ID = %02X %02X %02X %02X\r\n", id[0], id[1], id[2], id[3]);
+
 }
 
 unsigned long lastTime = 0;
@@ -351,8 +444,8 @@ void reconnect(){
   client.setServer(mqtt_server, 1885);
   while (!client.connected()) {
     Serial.println("Attempting MQTT connection...");
-    Serial.println(mqtt_name);
-    if (client.connect(mqtt_name)) {
+    Serial.println(mqtt_server);
+    if (client.connect(mqtt_server)) {
       Serial.println("connected");
     } else {
       Serial.print("failed, rc=");
@@ -379,14 +472,26 @@ void ledRed(){
   neopixelWrite(RGB_BUILTIN, 100,0,0);
 }
 
+uint8_t db, dbmin, dbmax;
+String DBMJson;
+
 void loop() 
 {
+
+  // GET SENSOR DATA
+  // Read the decibel level from the sensor
+  db = dbmeter_readreg(&dbmeter, DBM_REG_DECIBEL);
+  dbmin = dbmeter_readreg(&dbmeter, DBM_REG_MIN);
+  dbmax = dbmeter_readreg(&dbmeter, DBM_REG_MAX);
+  // Serial.printf("Decibel = %d, Min = %d, Max = %d\r\n", db, dbmin, dbmax);
+
+
 
   JsonDocument doc;
   doc["sensorId"] = ESP.getEfuseMac(); 
   doc["sensor_name"] = my_config.sensor_name;
-  doc["dbLevel"] = random(45, 120);
-  doc["timeStamp"] = NTP.getTimeDateStringUs();
+  doc["dbLevel"] = String(db);
+  doc["timeStamp"] = NTP.millis();
 
   String msg;
   serializeJson(doc, msg);
@@ -401,7 +506,7 @@ void loop()
     };
     client.publish("DBMeter", msg.c_str());
   } else {
-    Serial.println("Client not connected");
+    // Serial.println("Client not connected");
     ledRed();
     reconnect();
   }

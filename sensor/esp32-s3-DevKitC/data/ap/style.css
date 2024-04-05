@@ -3,12 +3,6 @@
   margin: 0px;
 }
 
-body {
-  background-color: rgb(65, 65, 65);
-}
-
-
-
 /* SPINNER STUFF */
 
 :root {
@@ -45,9 +39,25 @@ body {
     color: var(--fg);
     display: grid;
     place-items: center;
-    font: 1em/1.5 sans-serif;
-    height: 100vh;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font: 1em/1.5;
+    padding: 0 20%;
     transition: background-color var(--trans-dur), color var(--trans-dur);
+}
+
+header{
+    background-color: rgb(0, 0, 86);
+    width: 100%;
+    padding: 20px;
+}
+
+footer{
+    background-color: rgb(0, 0, 86);
+    width: 100%;
+    padding: 20px; 
+    text-align: center;
+    font-size: medium;
+    padding: 20px;
 }
 
 .pl {

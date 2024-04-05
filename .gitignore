@@ -196,5 +196,5 @@ dist-ssr
 *.sw?
 
 # SERVER STUFF
-index.html
+
 wifi.dat
