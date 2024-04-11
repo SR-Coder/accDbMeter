@@ -1,0 +1,145 @@
+*{
+    padding: 0px;
+    margin: 0px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+body{
+    background-color: #333333;
+    color: whitesmoke;
+    padding: 0 20%;
+}
+
+header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: rgb(29, 29, 29);
+    border-bottom: gray 1px solid;
+}
+
+.wide{
+    width: 100%;
+}
+
+main{
+    padding: 20px;
+}
+
+.config-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+
+    .btn{
+        background-color: whitesmoke;
+        padding: 4px;
+        text-decoration: none;
+        border-radius: 2px;
+        color: black;
+        box-shadow: 2px 2px 2px black;
+    }
+}
+
+.form-container{
+    padding: 40px;
+    margin-top: 20px;
+    border: 1px solid grey;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-item{
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0px;
+}
+
+.warning{
+    color: red;
+    font-variant-caps: all-small-caps;
+}
+
+.text-input{
+    width: 80%;
+    
+}
+
+.input-label{
+    margin-right: 40px;
+}
+
+.login-form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    /* width: 50%; */
+}
+.login{
+    text-align: center;
+    padding: 20px;
+    border: 1px solid gray;
+}
+
+hr{
+    margin-top: 10px;
+    width: 100%;
+}
+
+.center{
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: black;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 110%;
+}
+
+.tooltip .tooltiptext::after {
+content: "";
+position: absolute;
+top: 50%;
+right: 100%;
+margin-top: -5px;
+border-width: 5px;
+border-style: solid;
+border-color: transparent black transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+visibility: visible;
+}
+
+.button-submit{
+    margin-top: 20px;
+    width: 100px;
+    height: 30px;
+}
+
+footer{
+    text-align: center;
+    background-color: #202020;
+    padding: 40px;
+}

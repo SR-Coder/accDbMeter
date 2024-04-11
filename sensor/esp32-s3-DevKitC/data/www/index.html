@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <script src="index.js" defer></script>
+    <title>ACC DB Sensor | Login</title>
+</head>
+    <body>
+        <header>
+            <div class="wide">
+                <h1>ACC DB Meter | Sensor Config Login Page</h1>
+                <div class="config-header">
+                    <p>v1.0</p>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="config-header">
+                <h1>DB Sensor Configuration</h1>
+                <a class="btn" href="/restart">Restart Sensor</a>
+                <a class="btn" href="/mqttStop">Stop MQTT</a>
+                <a class="btn" href="/mqttStart">Start MQTT</a>
+                <a class="btn" href="/mqttRestart">Restart MQTT</a>
+            </div>
+            <div class="form-container">
+                <form action="/update/sensordata" method="post" >
+                    <h2>Device Information</h2>
+                    <div class="form-item">
+                        <label class="input-label" for="sensor_name">Sensor Name</label>
+                        <input class="text-input" type="text" name="sensor_name" id="sensor_name" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label" for="sensor_username">Username</label>
+                        <input class="text-input" type="text" name="sensor_username" id="sensor_username" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label" for="password">Password</label>
+                        <input class="text-input" type="password" name="sensor_password" id="sensor_password" >
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label" for="confPassword">Confirm Password</label>
+                        <input class="text-input" type="password" name="sensor_confPassword" id="sensor_confPassword" >
+                    </div>
+                    <div class="center">
+                        <button class="button-submit" type="submit">Submit</button>
+                    </div>
+                </form>
+                    <div class="center">
+                        <hr>
+                    </div>
+                    <h2>Physical Location</h2>
+                <form action="/update/sensorlocation" method="post">
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="sensor_location">Location Name
+                            <span class="tooltiptext">Provide a descriptive location for this sensor.</span>
+                        </label>
+                        <input class="text-input" type="text" name="sensor_location" id="sensor_location" value="">
+                    </div>
+                    <!-- <h3>Distance from left to right (X), and front to back (Y)</h3> -->
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="units">Units
+                            <span class="tooltiptext">Select a measurement unit (english or metric)</span>
+                        </label>
+                        <select name="units" id="units">
+                            <option id="feet" value="feet" selected>Feet</option>
+                            <option id="meters" value="meters" >Meters</option>
+                        </select>
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="x_loc">X - Location
+                            <span class="tooltiptext">Distance left or right from center stage (left is negative)</span>
+                        </label>
+                        <input class="text-input" type="number" name="x_loc" id="x_loc" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="y_loc">Y - Location
+                            <span class="tooltiptext">Distance from the front of the stage (onstage is negative)</span>
+                        </label>
+                        <input class="text-input" type="number" name="y_loc" id="y_loc" value="">
+                    </div>
+                    <div class="center">
+                        <button class="button-submit" type="submit">Submit</button>
+                    </div>
+                </form>
+                    <div class="center">
+                        <hr>
+                    </div>
+                    <h2>MQTT Server Settings</h2>
+                <form action="/update/mqttsettings" method="post">
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="mqtt_server">MQTT Server 
+                            <span class="tooltiptext">Ip Address or Server Name (ie: 10.1.1.10, or hive.mq.com)</span>
+                        </label>
+                        
+                        <input class="text-input" type="text" name="mqtt_server" id="mqtt_server" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="mqtt_port">MQTT Port 
+                            <span class="tooltiptext">Port Number for MQTT Server</span>
+                        </label>
+                        
+                        <input class="text-input" type="text" name="mqtt_port" id="mqtt_port" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="mqtt_user">MQTT Username 
+                            <span class="tooltiptext">Your username for logging into the MQTT Server</span>
+                        </label>
+                        
+                        <input class="text-input" type="text" name="mqtt_user" id="mqtt_user" value="">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="mqtt_pass">MQTT Password 
+                            <span class="tooltiptext">Password for logging into MQTT Server.  WARNING THIS WILL BE SAVED UNHASHED IN THE CONFIG.JSON FILE</span>
+                        </label>
+                        
+                        <input class="text-input" type="text" name="mqtt_pass" id="mqtt_pass">
+                    </div>
+                    <div class="form-item">
+                        <label class="input-label tooltip" for="mqtt_rate">MQTT Msg Rate 
+                            <span class="tooltiptext">Select how many times per second to send messages</span>
+                        </label>
+                        
+                        <select name="mqtt_rate" id="mqtt_rate">
+                            <option value="0" >Select an option</option>
+                            <option value=".016" >1 per min</option>
+                            <option value="1" >1hz</option>
+                            <option value="6" >10hz</option>
+                            <option value="30" >30hz</option>
+                            <option value="60" >60hz</option>
+                            <option value="600" >600hz</option>
+                            <option value="6000" >6000hz</option>
+                            <option value="20000" >20000hz</option>
+                            <option value="40000" >40000hz</option>
+                        </select>
+                    </div>
+                    <div class="center">
+                        <button class="button-submit" type="submit">Submit</button>
+                    </div>
+                </form>
+                
+            </div>
+        </main>
+        <footer>
+            <p>Created by the ACC Software Design Team 2024</p>
+        </footer>
+    </body>
+</html>
