@@ -1,6 +1,6 @@
 .DS_Store
 
-
+*.stl
 
 # PYTHON STUFF
 # Byte-compiled / optimized / DLL files
