@@ -3,9 +3,12 @@
 #endif
 
 #define SHOW_TIME_PERIOD 1000
-#define LED LED_BUILTIN
+#define LED 38
 #define rLED 
 
+#define isI2c true
+
+#include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
@@ -16,7 +19,15 @@
 #include <PubSubClient.h>
 #include <ESPNtpClient.h>
 #include "dbMeter.h"
+
+#if isI2c
 #include <Wire.h>
+#endif
+
+#define NUMPIXELS 1
+#define PIN_NEOPIXEL 48
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 // FILESYSTEM STUFF
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -119,6 +130,7 @@ void writeConfig(const config_t& config, const char* filename){
 }
 
 // Serial I2C Setup for DB Sensor
+#if isI2c
 TwoWire dbmeter = TwoWire(0);
 
 // Read from the register of the DB Sensor
@@ -129,21 +141,35 @@ uint8_t dbmeter_readreg(TwoWire *dev, uint8_t regAddr){
   dev->requestFrom(DBM_ADDR, 1);
   return dev->read();
 }
+#endif
 
 
 void setup()
 {
-
-  NTP.setTimeZone(TZ_America_Los_Angeles);
-  NTP.begin();
-
-  // Setup the pins for the led
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
-
+  // Start the serial connection
   Serial.begin(115200);
   Serial.println("Connected");
 
+  #if defined(NEOPIXEL_POWER)
+  pinMode(NEOPIXEL_POWER, OUTPUT);
+  digitalWrite(NEOPIXEL_POWER, HIGH);
+  #endif
+
+  pixels.begin();
+  pixels.setBrightness(20);
+
+  pixels.fill(pixels.Color(255, 255, 0), 0, NUMPIXELS);
+  pixels.show();
+
+  // Start the NTP Client
+  NTP.setTimeZone(TZ_America_Los_Angeles);
+  NTP.begin();
+
+  // Setup the LED
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+
+  // Check the file system
   if (!LittleFS.begin(true)){
     Serial.println("[ERROR] Unable to open spiffs partition or run little FS");
     ESP.deepSleep(15 * 1000 * 1000);
@@ -261,7 +287,6 @@ void setup()
     run_mqtt = true;
     request->redirect("/");
   });
-
 
   // UPDATE SENSOR CONFIG DATA
   webServer.on("/update/sensordata", HTTP_POST, [](AsyncWebServerRequest *request){
@@ -424,6 +449,7 @@ void setup()
 
 
   // SETUP DB SENSOR
+  #if isI2c
   dbmeter.begin(I2C_SDA, I2C_SCL, 100000);
   uint8_t dbm_version = dbmeter_readreg(&dbmeter, DBM_REG_VERSION);
   Serial.printf("Version = 0x%02X\r\n", dbm_version);
@@ -435,14 +461,15 @@ void setup()
   id[3] = dbmeter_readreg(&dbmeter, DBM_REG_ID0);
 
   Serial.printf("ID = %02X %02X %02X %02X\r\n", id[0], id[1], id[2], id[3]);
-
+  #endif
 }
 
 unsigned long lastTime = 0;
 
+// MQTT RECONNECT FUNCTION
 void reconnect(){
   client.setServer(mqtt_server, 1885);
-  while (!client.connected()) {
+  while (!client.connected() && WiFi.getMode() == WIFI_STA) {
     Serial.println("Attempting MQTT connection...");
     Serial.println(mqtt_server);
     if (client.connect(mqtt_server)) {
@@ -467,23 +494,29 @@ void ledOff(){
   neopixelWrite(RGB_BUILTIN, 0,0,0);
   isOn = false;
 }
-
 void ledRed(){
   neopixelWrite(RGB_BUILTIN, 100,0,0);
+  isOn = true;
 }
+
 
 uint8_t db, dbmin, dbmax;
 String DBMJson;
 
 void loop() 
 {
-
   // GET SENSOR DATA
   // Read the decibel level from the sensor
+  #if isI2c
   db = dbmeter_readreg(&dbmeter, DBM_REG_DECIBEL);
   dbmin = dbmeter_readreg(&dbmeter, DBM_REG_MIN);
   dbmax = dbmeter_readreg(&dbmeter, DBM_REG_MAX);
   // Serial.printf("Decibel = %d, Min = %d, Max = %d\r\n", db, dbmin, dbmax);
+  #else
+  db = 0;
+  dbmin = 0;
+  dbmax = 0;
+  #endif
 
 
 
@@ -505,8 +538,15 @@ void loop()
       ledOn();
     };
     client.publish("DBMeter", msg.c_str());
-  } else {
+  } else if (client.connected() && !run_mqtt){
     // Serial.println("Client not connected");
+    if (isOn){
+      ledOff();
+    } else {
+      ledRed();
+    }
+    reconnect();
+  } else {
     ledRed();
     reconnect();
   }
