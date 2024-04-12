@@ -6,7 +6,7 @@
 #define LED 38
 #define rLED 
 
-#define isI2c true
+#define isI2c false
 
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
@@ -485,6 +485,7 @@ void reconnect(){
 }
 
 bool isOn = false;
+bool isFlashing = true;
 // LED Functions
 void ledOn(){
   neopixelWrite(RGB_BUILTIN, 0,100,0);
@@ -497,6 +498,49 @@ void ledOff(){
 void ledRed(){
   neopixelWrite(RGB_BUILTIN, 100,0,0);
   isOn = true;
+}
+
+void statusLed(){
+  if(isOn && isFlashing){
+    // turns off led if it is on and set to flash
+    neopixelWrite(RGB_BUILTIN, 0,0,0);
+    return;
+  }
+  if (WiFi.getMode()==WIFI_AP){
+    // if in AP mode flash the blue led
+    neopixelWrite(RGB_BUILTIN, 0,0,100);
+    isOn = true;
+    isFlashing = true;
+    return;
+  }
+  if (WiFi.getMode()==WIFI_STA && !WiFi.isConnected()){
+    // if in STA Mode but not connected solid red
+    neopixelWrite(RGB_BUILTIN, 100,0,0);
+    isOn = true;
+    isFlashing = false;
+    return;
+  }
+  if (WiFi.getMode()==WIFI_STA && WiFi.isConnected() && !client.connected()){
+    // if in STA Mode and connected to wifi but not connected to mqtt server flash yellow
+    neopixelWrite(RGB_BUILTIN, 100,100,0);
+    isOn = true;
+    isFlashing = true;
+    return;
+  }
+  if (WiFi.getMode()==WIFI_STA && WiFi.isConnected() && client.connected()){
+    // if in STA Mode and connected to wifi and connected to mqtt server flash green
+    neopixelWrite(RGB_BUILTIN, 0,100,0);
+    isOn = true;
+    isFlashing = true;
+    return;
+  }
+  if (WiFi.getMode()==WIFI_STA && WiFi.isConnected() && client.connected() && !run_mqtt){
+    // if in STA Mode and connected to wifi and connected to mqtt server but mqtt is set to stop flash red
+    neopixelWrite(RGB_BUILTIN, 100,0,0);
+    isOn = true;
+    isFlashing = true;
+    return;
+  }
 }
 
 
@@ -518,34 +562,30 @@ void loop()
   dbmax = 0;
   #endif
 
-
-
   JsonDocument doc;
+  String msg;
   doc["sensorId"] = ESP.getEfuseMac(); 
   doc["sensor_name"] = my_config.sensor_name;
   doc["dbLevel"] = String(db);
   doc["timeStamp"] = NTP.millis();
-
-  String msg;
   serializeJson(doc, msg);
-
   doc.clear();
+  
 
   if(client.connected() && run_mqtt){
-    if(isOn){
-      ledOff();
-    } else {
-      ledOn();
-    };
     client.publish("DBMeter", msg.c_str());
+    msg = "";
   } else if (client.connected() && !run_mqtt){
-    // Serial.println("Client not connected");
-    if (isOn){
-      ledOff();
-    } else {
-      ledRed();
-    }
-    reconnect();
+    JsonDocument sDoc;
+    String sMsg;
+    sDoc["sensorId"] = ESP.getEfuseMac();
+    sDoc["sensor_name"] = my_config.sensor_name;
+    sDoc["status"] = "Stopped";
+    sDoc["timeStamp"] = NTP.millis();
+    serializeJson(doc, sMsg);
+    client.publish("DBMeter", sMsg.c_str());
+    sDoc.clear();
+    sMsg = "";
   } else {
     ledRed();
     reconnect();
