@@ -469,7 +469,7 @@ unsigned long lastTime = 0;
 // MQTT RECONNECT FUNCTION
 void reconnect(){
   client.setServer(mqtt_server, 1885);
-  while (!client.connected() && WiFi.getMode() == WIFI_STA) {
+  if(!client.connected() && WiFi.getMode() == WIFI_STA) {
     Serial.println("Attempting MQTT connection...");
     Serial.println(mqtt_server);
     if (client.connect(mqtt_server)) {
@@ -478,32 +478,19 @@ void reconnect(){
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
-      delay(5000);
+      delay(3000);
     }
   }
-
 }
 
 bool isOn = false;
 bool isFlashing = true;
-// LED Functions
-void ledOn(){
-  neopixelWrite(RGB_BUILTIN, 0,100,0);
-  isOn = true;
-}
-void ledOff(){
-  neopixelWrite(RGB_BUILTIN, 0,0,0);
-  isOn = false;
-}
-void ledRed(){
-  neopixelWrite(RGB_BUILTIN, 100,0,0);
-  isOn = true;
-}
 
 void statusLed(){
   if(isOn && isFlashing){
     // turns off led if it is on and set to flash
     neopixelWrite(RGB_BUILTIN, 0,0,0);
+    isOn = false;
     return;
   }
   if (WiFi.getMode()==WIFI_AP){
@@ -511,6 +498,13 @@ void statusLed(){
     neopixelWrite(RGB_BUILTIN, 0,0,100);
     isOn = true;
     isFlashing = true;
+    return;
+  }
+  if (WiFi.getMode()==3){
+    // in ap mode and searching and setting a station
+    neopixelWrite(RGB_BUILTIN, 0,0,100);
+    isOn = true;
+    isFlashing = false; 
     return;
   }
   if (WiFi.getMode()==WIFI_STA && !WiFi.isConnected()){
@@ -527,7 +521,7 @@ void statusLed(){
     isFlashing = true;
     return;
   }
-  if (WiFi.getMode()==WIFI_STA && WiFi.isConnected() && client.connected()){
+  if (WiFi.getMode()==WIFI_STA && WiFi.isConnected() && client.connected() && run_mqtt){
     // if in STA Mode and connected to wifi and connected to mqtt server flash green
     neopixelWrite(RGB_BUILTIN, 0,100,0);
     isOn = true;
@@ -543,60 +537,65 @@ void statusLed(){
   }
 }
 
-
 uint8_t db, dbmin, dbmax;
 String DBMJson;
 
 void loop() 
 {
-  // GET SENSOR DATA
-  // Read the decibel level from the sensor
-  #if isI2c
-  db = dbmeter_readreg(&dbmeter, DBM_REG_DECIBEL);
-  dbmin = dbmeter_readreg(&dbmeter, DBM_REG_MIN);
-  dbmax = dbmeter_readreg(&dbmeter, DBM_REG_MAX);
-  // Serial.printf("Decibel = %d, Min = %d, Max = %d\r\n", db, dbmin, dbmax);
-  #else
-  db = 0;
-  dbmin = 0;
-  dbmax = 0;
-  #endif
-
-  JsonDocument doc;
-  String msg;
-  doc["sensorId"] = ESP.getEfuseMac(); 
-  doc["sensor_name"] = my_config.sensor_name;
-  doc["dbLevel"] = String(db);
-  doc["timeStamp"] = NTP.millis();
-  serializeJson(doc, msg);
-  doc.clear();
+  // SET STATUS LED
   
+  Serial.println("Beginning of Loop");
+  // IF CONNECTED TO STATION DO THE FOLLOWING ELSE DO NOTHING
+  if(WiFi.getMode() == WIFI_STA){
+    // GET SENSOR DATA
+    // Read the decibel level from the sensor
+    // Add fake data in case the sensor is not connected
+    #if isI2c
+    db = dbmeter_readreg(&dbmeter, DBM_REG_DECIBEL);
+    dbmin = dbmeter_readreg(&dbmeter, DBM_REG_MIN);
+    dbmax = dbmeter_readreg(&dbmeter, DBM_REG_MAX);
+    #else
+    db = 255;
+    dbmin = 0;
+    dbmax = 0;
+    #endif
 
-  if(client.connected() && run_mqtt){
-    client.publish("DBMeter", msg.c_str());
-    msg = "";
-  } else if (client.connected() && !run_mqtt){
-    JsonDocument sDoc;
-    String sMsg;
-    sDoc["sensorId"] = ESP.getEfuseMac();
-    sDoc["sensor_name"] = my_config.sensor_name;
-    sDoc["status"] = "Stopped";
-    sDoc["timeStamp"] = NTP.millis();
-    serializeJson(doc, sMsg);
-    client.publish("DBMeter", sMsg.c_str());
-    sDoc.clear();
-    sMsg = "";
-  } else {
-    ledRed();
-    reconnect();
-  }
+    // CREATE MESSAGE TO SEND TO MQTT SERVER
+    JsonDocument doc;
+    String msg;
+    doc["sensorId"] = ESP.getEfuseMac(); 
+    doc["sensor_name"] = my_config.sensor_name;
+    doc["dbLevel"] = String(db);
+    doc["timeStamp"] = NTP.millis();
+    serializeJson(doc, msg);
+    doc.clear();
+    
 
-  if (millis() - lastTime > 5000) {
-    client.loop();
-    lastTime = millis();
+    if(client.connected() && run_mqtt){
+      client.publish("DBMeter", msg.c_str());
+      msg = "";
+    } else if (client.connected() && !run_mqtt){
+      JsonDocument sDoc;
+      String sMsg;
+      sDoc["sensorId"] = ESP.getEfuseMac();
+      sDoc["sensor_name"] = my_config.sensor_name;
+      sDoc["status"] = "Stopped";
+      sDoc["timeStamp"] = NTP.millis();
+      serializeJson(sDoc, sMsg);
+      client.publish("DBMeter", sMsg.c_str());
+      sDoc.clear();
+      sMsg = "";
+    } else {
+      reconnect();
+    }
+
+    if (millis() - lastTime > 5000) {
+      client.loop();
+      lastTime = millis();
+    }
   }
   // SETS HOW OFTEN THE MQTT CLIENT WILL SEND A MESSAGE
   delay(mqtt_rate);
-
+  statusLed();
 }
 
