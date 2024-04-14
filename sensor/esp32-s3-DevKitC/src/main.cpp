@@ -6,7 +6,7 @@
 #define LED 38
 #define rLED 
 
-#define isI2c false
+#define isI2c true
 
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
@@ -539,12 +539,10 @@ void statusLed(){
 
 uint8_t db, dbmin, dbmax;
 String DBMJson;
+int frequency = (1.0 / my_config.mqtt_rate)*1000;
 
 void loop() 
 {
-  // SET STATUS LED
-  
-  Serial.println("Beginning of Loop");
   // IF CONNECTED TO STATION DO THE FOLLOWING ELSE DO NOTHING
   if(WiFi.getMode() == WIFI_STA){
     // GET SENSOR DATA
@@ -565,6 +563,10 @@ void loop()
     String msg;
     doc["sensorId"] = ESP.getEfuseMac(); 
     doc["sensor_name"] = my_config.sensor_name;
+    // doc["sensor_location"] = my_config.sensor_location;
+    // doc["x_loc"] = my_config.x_loc;
+    // doc["y_loc"] = my_config.y_loc;
+    
     doc["dbLevel"] = String(db);
     doc["timeStamp"] = NTP.millis();
     serializeJson(doc, msg);
@@ -579,6 +581,7 @@ void loop()
       String sMsg;
       sDoc["sensorId"] = ESP.getEfuseMac();
       sDoc["sensor_name"] = my_config.sensor_name;
+
       sDoc["status"] = "Stopped";
       sDoc["timeStamp"] = NTP.millis();
       serializeJson(sDoc, sMsg);
@@ -595,7 +598,8 @@ void loop()
     }
   }
   // SETS HOW OFTEN THE MQTT CLIENT WILL SEND A MESSAGE
-  delay(mqtt_rate);
+
+  delay(round((1.00/my_config.mqtt_rate*1000)));
   statusLed();
 }
 
