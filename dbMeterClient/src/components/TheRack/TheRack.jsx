@@ -8,10 +8,10 @@ function TheRack() {
   const [sensorData, setSensorData] = useState([]);
 
   useEffect(() => {
-    const topic = "dbMeter/dbLevel";
+    const topic = "DBMeter";
     const mqttOptions = {
       clean: true,
-      clientId: "dbmeterclient_edb260",
+      clientId: "dbmeterclient_"+Math.random().toString(16).substr(2, 8),
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
