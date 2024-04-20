@@ -433,10 +433,11 @@ void setup()
   // MQTT CONNECTION
   if (WiFi.getMode() == WIFI_STA) {
       // Connect to the MQTT server
-      client.setServer(mqtt_server, 1885);
+      client.setServer(mqtt_server, 1885); 
       while (!client.connected()) {
           Serial.println("Connecting to MQTT...");
           Serial.println(mqtt_server);
+          // James to change the connect to pass in the ID of the sensore to connect
           if (client.connect(mqtt_server)) {
               Serial.println("connected"); 
           } else {
