@@ -563,13 +563,13 @@ void loop()
     JsonDocument doc;
     String msg;
     doc["sensorId"] = ESP.getEfuseMac(); 
-    doc["sensor_name"] = my_config.sensor_name;
+    doc["sensorName"] = my_config.sensor_name;
     // doc["sensor_location"] = my_config.sensor_location;
     // doc["x_loc"] = my_config.x_loc;
     // doc["y_loc"] = my_config.y_loc;
     
     doc["dbLevel"] = String(db);
-    doc["timeStamp"] = NTP.millis();
+    doc["timestamp"] = NTP.millis();
     serializeJson(doc, msg);
     doc.clear();
     
@@ -581,10 +581,10 @@ void loop()
       JsonDocument sDoc;
       String sMsg;
       sDoc["sensorId"] = ESP.getEfuseMac();
-      sDoc["sensor_name"] = my_config.sensor_name;
+      sDoc["sensorName"] = my_config.sensor_name;
 
       sDoc["status"] = "Stopped";
-      sDoc["timeStamp"] = NTP.millis();
+      sDoc["timestamp"] = NTP.millis();
       serializeJson(sDoc, sMsg);
       client.publish("DBMeter", sMsg.c_str());
       sDoc.clear();
