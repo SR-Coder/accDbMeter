@@ -5,7 +5,7 @@ const sensors = [
     { "sensorId": 23, "sensorName": "Middle of Church" },
     { "sensorId": 42, "sensorName": "Back of Church" },
 ];
-let topic = "dbMeter/dbLevel";
+let topic = "DBMeter";
 let client = mqtt.connect("mqtt://localhost:1885");
 setInterval(publishMessageForEachSensor, sendMessageInterval);
 
