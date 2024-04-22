@@ -1,12 +1,19 @@
 import Comparables from "../Comparables/Comparables";
 import { NumberFormatter } from "../NumberFormatter/NumberFormatter";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PropTypes from "prop-types";
 import "./dbmeter.scss";
 
-function Dbmeter({ sensor: { sensorId, dbLevel, sensorName, timestamp } }) {
-  const formattedDB = Math.round(dbLevel);
-  const time = new Date(timestamp).toLocaleTimeString();
-
+function Dbmeter(sensor) {
+  const last = sensor.sensor[sensor.sensor.length - 1];
+  const dbLevel = last.dbLevel;
+  const formattedDB = Math.round(last.dbLevel);
+  const time = new Date(last.timestamp).toLocaleTimeString();
+  last.time = time;
+  const sensorName = last.sensorName;
+  const sensorId = last.sensorId;
+  const data = sensor.sensor;
+  console.log(data);
   return (
     <>
       <div className="meter">
@@ -26,6 +33,18 @@ function Dbmeter({ sensor: { sensorId, dbLevel, sensorName, timestamp } }) {
           </div>
         </div>
         {dbLevel && <Comparables decibel={formattedDB} />}
+        <ResponsiveContainer height={250}>
+          <LineChart data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="dbLevel" stroke="#8884d8" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </>
   );
@@ -33,7 +52,7 @@ function Dbmeter({ sensor: { sensorId, dbLevel, sensorName, timestamp } }) {
 
 Dbmeter.propTypes = {
   decibelLevel: PropTypes.number,
-  sensor: PropTypes.object,
+  sensor: PropTypes.array,
 };
 
 export default Dbmeter;
