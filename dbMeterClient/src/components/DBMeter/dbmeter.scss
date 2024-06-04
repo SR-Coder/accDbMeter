@@ -8,7 +8,8 @@
     display: flex;
     flex-direction: column;
     h1 {
-      font-size: 3em;
+      font-size: 2em;
+      font-weight: normal;
     }
     &-subheader {
       display: flex;
@@ -97,4 +98,16 @@
     color: #7375a1;
     z-index: -1;
   }
+}
+
+.graph {
+  border-radius: 1em;
+  width: 21em;
+  background: #111;
+  padding: 1em;
+  margin: 1em;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
