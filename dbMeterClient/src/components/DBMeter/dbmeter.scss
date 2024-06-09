@@ -4,18 +4,22 @@
   background: #111;
   padding: 1em;
   margin: 1em;
+
   &-header {
     display: flex;
     flex-direction: column;
+
     h1 {
       font-size: 2em;
       font-weight: normal;
     }
+
     &-subheader {
       display: flex;
       justify-content: space-between;
     }
   }
+
   &-name {
     margin: 0;
     font-weight: 100;
@@ -31,6 +35,7 @@
     box-shadow: 1px 1px 5px rgba(100, 100, 100, 0.5),
       inset 4px 4px 4px rgba(255, 255, 255, 0.25);
   }
+
   &-output,
   &-output * {
     border-radius: 100%;
@@ -46,6 +51,7 @@
     height: 12.8em;
     box-shadow: inset 5px 5px 5px rgba(100, 100, 100, 0.5);
   }
+
   &-output-screen {
     box-sizing: border-box;
     position: relative;
@@ -63,6 +69,7 @@
     box-shadow: 1px 1px 5px rgba(100, 100, 100, 0.5),
       inset 4px 4px 4px rgba(255, 255, 255, 0.25);
   }
+
   &-output-screen p {
     font-family: "DS-DIGI", "DigitalDisplay", sans-serif, monospace;
     font-size: 6.5em;
@@ -110,4 +117,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media (prefers-color-scheme: light) {
+  .meter {
+    background-color: #fff;
+  }
+
+  .graph {
+    background-color: #fff;
+  }
 }

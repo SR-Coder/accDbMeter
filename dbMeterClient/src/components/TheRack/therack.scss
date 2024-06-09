@@ -1,8 +1,15 @@
 .the-rack {
   display: flex;
   justify-content: center;
+
   &-sensors {
     display: flex;
     flex-wrap: wrap;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .the-rack {
+    background-color: #f5f5f5;
   }
 }
