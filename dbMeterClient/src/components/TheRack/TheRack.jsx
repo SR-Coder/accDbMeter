@@ -3,8 +3,8 @@ import Dbmeter from "../DBMeter/dbmeter";
 import mqtt from "mqtt";
 import { PlayCircleOutlined } from "@ant-design/icons";
 import "./therack.scss";
-const MAX_NUMBER_OF_DATA_POINTS = 60;
-const DISTANCE_BETWEEN_SAMPLES_MILLIS = 1000;
+const MAX_NUMBER_OF_DATA_POINTS = 600;
+const DISTANCE_BETWEEN_SAMPLES_MILLIS = 2000;
 function TheRack() {
   const [sensorData, setSensorData] = useState([]);
 
@@ -12,7 +12,7 @@ function TheRack() {
     const topic = "DBMeter";
     const mqttOptions = {
       clean: true,
-      clientId: "dbmeterclient_"+Math.random().toString(16).substr(2, 8),
+      clientId: "dbmeterclient_" + Math.random().toString(16).substr(2, 8),
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
@@ -27,6 +27,13 @@ function TheRack() {
     });
     client.on("message", (topic, message) => {
       const jsonMessage = JSON.parse(message);
+      // legacy support for old messages
+      if (jsonMessage.timestamp === undefined) {
+        jsonMessage.timestamp = jsonMessage.timeStamp;
+      }
+      if (jsonMessage.sensorName === undefined) {
+        jsonMessage.sensorName = jsonMessage.sensor_name;
+      }
       setSensorData((prevSensorData) => {
         // Check if sensor with the same sensorId already exists
         const existingSensorIndex = prevSensorData.findIndex(
@@ -37,8 +44,8 @@ function TheRack() {
           const updatedSensorData = [...prevSensorData];
           let newArray = updatedSensorData[existingSensorIndex];
           // Remove data points that are too close to each other
-          if (newArray.length > 2 && newArray[newArray.length-2].timestamp +DISTANCE_BETWEEN_SAMPLES_MILLIS >= newArray[newArray.length-1].timestamp) {
-            let first =newArray.pop();
+          if (newArray.length > 2 && newArray[newArray.length - 2].timestamp + DISTANCE_BETWEEN_SAMPLES_MILLIS >= newArray[newArray.length - 1].timestamp) {
+            let first = newArray.pop();
             let second = newArray.pop();
             if (first.dbLevel > second.dbLevel) {
               newArray.push(first);
