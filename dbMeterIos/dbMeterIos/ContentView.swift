@@ -10,20 +10,31 @@ import SwiftUI
 struct ContentView: View {
     @StateObject var viewModel = DbMeterModel()
     var body: some View {
-        VStack {
-            //serverInput
-            //label sending data?
-            // toggle to send data
-//            Image(systemName: "globe")
-//                .imageScale(.large)
-//                .foregroundStyle(.tint)
-            Text("MQTT Server")
-            TextField("Server", text: $viewModel.server)
-            TextField("Your Device (shared with the server)", text: $viewModel.deviceName)
-            
-            Text("Db Level \(viewModel.lastPeak)")
-            Toggle("Send Messages", isOn: $viewModel.sendMessages)
-            
+            Form {
+                //serverInput
+                //label sending data?
+                // toggle to send data
+                //            Image(systemName: "globe")
+                //                .imageScale(.large)
+                //                .foregroundStyle(.tint)
+                Text("DB Meter iOS Client").font(.title)
+                Section {
+                    LabeledContent {
+                        TextField("Server", text: $viewModel.server).fontWeight(.bold)
+                    } label: {Text("Server")}
+                    LabeledContent {
+                        TextField("Device", text: $viewModel.deviceName).fontWeight(.bold)
+                    } label: {Text("Device")}
+                    Toggle("Monitoring Enabled", isOn: $viewModel.sendMessages)
+                } header : {
+                    Text("Settings")
+                }
+                
+                Section {
+                    LabeledContent("Db Level", value: "\(viewModel.lastPeak)")
+                } header:  {
+                    Text("state")
+                }
         }
         .padding()
     }

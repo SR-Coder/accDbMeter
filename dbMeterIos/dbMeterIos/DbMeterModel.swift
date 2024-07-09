@@ -15,8 +15,6 @@ import CocoaMQTT
 final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     
-    var lastLocation: CLLocation?
-    
     @Published var lastAverage: Float?
     @Published var lastPeak: Float = 0.0
     @Published var port: UInt16 = 1885
@@ -39,7 +37,7 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
                 mqtt5!.connectProperties = connectProperties
 //                mqtt5!.username = "test"
 //                mqtt5!.password = "public"
-                mqtt5!.willMessage = CocoaMQTT5Message(topic: "/will", string: "dieout")
+                mqtt5!.willMessage = CocoaMQTT5Message(topic: "offline", string: "dieout")
                 mqtt5!.keepAlive = 60
 //                mqtt5!.delegate = self
                 mqtt5!.connect()
@@ -91,7 +89,7 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
             print("Unable start recording", err)
         }
     }
-    
+
     func directoryURL() -> URL? {
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
@@ -99,14 +97,10 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
         let soundURL = documentDirectory.appendingPathComponent("sound.m4a")
         return soundURL
     }
-
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
     {
-        let userLocation: CLLocation = locations.last!
-        DispatchQueue.main.async {
-            self.lastLocation = userLocation
-        }
-
+    
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error)
@@ -152,10 +146,6 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
         return level
     }
     
-//    func quickAdapt (dBFSValue: Float) -> Float
-//    {
-//
-//    }
     func recordDatapoint(average: Float, peak: Float, location: CLLocation?) {
         // Send a single datapoint to DataDog
         let timestamp = Date().timeIntervalSince1970 * 1000
@@ -163,37 +153,17 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
             "timestamp": timestamp,
             "sensorName": deviceName,
             "sensorId":String(ProcessInfo().processIdentifier),
-            "latitude": location?.coordinate.latitude,
-            "longitude": location?.coordinate.longitude,
+            "latitude": location?.coordinate.latitude as Any,
+            "longitude": location?.coordinate.longitude as Any,
             "dbLevel":calcDb(power: peak),
           
         ] as [String : Any]
-        guard let mqttUrl = URL(string: server),
-              let httpBody = try? JSONSerialization.data(withJSONObject: datapointPayload, options: []) else {
-            print("Bad URL or body")
-            return
+        DispatchQueue.main.async {
+            self.lastAverage = self.calcDb(power: average)
+            self.lastPeak = self.calcDb(power: peak)
         }
-        lastAverage = calcDb(power: average)
-        lastPeak = calcDb(power: peak)
         sendMessage(message: datapointPayload)
-        //           let request = NSMutableURLRequest(url: datadogUrl)
-        //           request.httpMethod = "POST"
-        //           request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        //           request.httpBody = httpBody
-        
-        //           let task = URLSession.shared.dataTask(with: request as URLRequest) { data, response, error in
-        //               if let error = error {
-        //                   print("error=\(error)")
-        //                   return
-        //               }
-        //               if let data = data {
-        //                   let responseString = String(data: data, encoding: String.Encoding.utf8)
-        //                   print("responseString = \(responseString)")
-        //                   return
-        //               }
-        //               print("Neither error nor data was provided")
-        //           }
-        //           task.resume()
+
     }
     
     func sendMessage(message: [String: Any]) {
@@ -206,7 +176,6 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
 
        publishProperties.contentType = "JSON"
        let publishResult = mqtt5!.publish("DBMeter", withString: String(decoding: mqttPayload, as: UTF8.self), qos: .qos1, properties: publishProperties)
-        print("published? \(publishResult)")
         
 //        publish(_ topic: String, withString string: String, qos: CocoaMQTTQoS = .qos1, DUP: Bool =
     }

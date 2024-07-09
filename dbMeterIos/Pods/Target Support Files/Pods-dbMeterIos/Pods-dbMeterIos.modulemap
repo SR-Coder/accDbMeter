@@ -1,0 +1,6 @@
+framework module Pods_dbMeterIos {
+  umbrella header "Pods-dbMeterIos-umbrella.h"
+
+  export *
+  module * { export * }
+}

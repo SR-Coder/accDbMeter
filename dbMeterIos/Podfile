@@ -1,0 +1,7 @@
+platform :ios, '17.4'
+use_frameworks!
+
+target 'dbMeterIos' do
+  pod 'CocoaMQTT', '~> 2.0.1'
+
+end
