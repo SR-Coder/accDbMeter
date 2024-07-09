@@ -34,6 +34,10 @@ function TheRack() {
       if (jsonMessage.sensorName === undefined) {
         jsonMessage.sensorName = jsonMessage.sensor_name;
       }
+      // ignore messages with dbLevel less than 40
+      if (jsonMessage.dbLevel<40) {
+        return
+      }
       setSensorData((prevSensorData) => {
         // Check if sensor with the same sensorId already exists
         const existingSensorIndex = prevSensorData.findIndex(

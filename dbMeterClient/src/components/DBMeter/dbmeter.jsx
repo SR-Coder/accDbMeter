@@ -53,7 +53,7 @@ function Dbmeter(sensor) {
                 contentStyle={{ backgroundColor: '#777777', borderRadius: '1em', boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.2)' }}
                 wrapperStyle={{ borderRadius: '1em', boxShadow: '0 0 5px 5px rgba(0, 0, 0, .25)' }}
               />
-              <Area type="monotone" dataKey="dbLevel" stroke="#F2F700" fillOpacity={1} fill="url(#colorUv)" />
+              <Area type="monotone" dataKey="dbLevel" stroke="#F2F700" fillOpacity={1} fill="url(#colorUv)"  isAnimationActive={false}/>
 
             </AreaChart>
           </ResponsiveContainer>
