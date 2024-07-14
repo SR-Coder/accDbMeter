@@ -27,7 +27,7 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
     @Published public var sendMessages = false {
         didSet {
             if sendMessages {
-                let clientID = "CocoaMQTT-" + String(ProcessInfo().processIdentifier)
+                let clientID = "CocoaMQTT-" + UIDevice.current.identifierForVendor!.uuidString
                 mqtt5 = CocoaMQTT5(clientID: clientID, host: server, port: port)
                 let connectProperties = MqttConnectProperties()
                 connectProperties.topicAliasMaximum = 0
@@ -40,7 +40,13 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
                 mqtt5!.willMessage = CocoaMQTT5Message(topic: "offline", string: "dieout")
                 mqtt5!.keepAlive = 60
 //                mqtt5!.delegate = self
-                mqtt5!.connect()
+                var result = mqtt5!.connect()
+                if !result {
+                    print("Had a connection failure, so retrying")
+                    result = mqtt5!.connect()
+                }
+                print("mqtt connection status is: \(result)")
+                
             } else {
                 if mqtt5 != nil {
                     mqtt5?.disconnect();
