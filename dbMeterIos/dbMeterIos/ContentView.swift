@@ -31,7 +31,8 @@ struct ContentView: View {
                 }
                 
                 Section {
-                    LabeledContent("Db Level", value: "\(viewModel.lastPeak)")
+                    LabeledContent("Peak Level", value: "\(viewModel.lastPeak)")
+                    LabeledContent("Average Level", value: "\(viewModel.lastAverage)")
                 } header:  {
                     Text("state")
                 }

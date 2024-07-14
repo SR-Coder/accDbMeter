@@ -15,7 +15,7 @@ import CocoaMQTT
 final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     
-    @Published var lastAverage: Float?
+    @Published var lastAverage: Float = 0.0
     @Published var lastPeak: Float = 0.0
     @Published var port: UInt16 = 1885
     @Published var lastMessage: String=""
@@ -161,7 +161,7 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
             "sensorId":String(ProcessInfo().processIdentifier),
             "latitude": location?.coordinate.latitude as Any,
             "longitude": location?.coordinate.longitude as Any,
-            "dbLevel":calcDb(power: peak),
+            "dbLevel":calcDb(power: average),
           
         ] as [String : Any]
         DispatchQueue.main.async {
@@ -213,7 +213,6 @@ final class DbMeterModel: NSObject, ObservableObject, CLLocationManagerDelegate 
         timer?.setEventHandler { [ self] in
             audioRecorder.updateMeters()
             locationManager.requestLocation()
-            // NOTE: seems to be the approx correction to get real decibels
             let average = audioRecorder.averagePower(forChannel: 0)
             let peak = audioRecorder.peakPower(forChannel: 0)
             if sendMessages {
