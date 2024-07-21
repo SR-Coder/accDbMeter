@@ -48,5 +48,17 @@ https://github.com/emqx/MQTT-Client-Examples
 specifically this version:
 https://github.com/emqx/MQTT-Client-Examples/tree/ccf475eec8ec7f03d6ec9e75c462fdb53bb4438d/mqtt-client-React/src/components
 
+## Google Maps
+
+Google Maps integration is done using the 
+visgl Google Maps library -- https://visgl.github.io/react-google-maps
+https://visgl.github.io/react-google-maps/examples
+
+It gives a great springboard for some very cool visualisations and effects.
+
 ### TODO
 [] Auth - https://mosquitto.org/documentation/authentication-methods/
+[] Admin pages?
+[] Styling of the maps
+[] resizing of dbMeters and the graph to fit in maps nicely
+[] explore heatmaps

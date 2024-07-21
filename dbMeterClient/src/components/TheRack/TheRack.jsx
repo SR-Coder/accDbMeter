@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Dbmeter from "../DBMeter/dbmeter";
 import mqtt from "mqtt";
 import { PlayCircleOutlined } from "@ant-design/icons";
+import {APIProvider, Map} from '@vis.gl/react-google-maps';
+import SensorMapMarker from "../SensorMapMarker/SensorMapMarker";
 import "./therack.scss";
 const MAX_NUMBER_OF_DATA_POINTS = 600;
 const DISTANCE_BETWEEN_SAMPLES_MILLIS = 2000;
@@ -16,6 +18,7 @@ function TheRack() {
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
+    const position = {lat: 53.54992, lng: 10.00678};
     const client = mqtt.connect(import.meta.env.VITE_MQTT_URL, mqttOptions);
 
     client.on("connect", () => {
@@ -77,17 +80,40 @@ function TheRack() {
     };
   }, []); // Empty dependency array to run effect only once
 
+  const position ={
+      lat: parseFloat(import.meta.env.VITE_GOOGLE_MAPS_LAT),
+      lng: parseFloat(import.meta.env.VITE_GOOGLE_MAPS_LONG)
+    };
+
   return (
-    <div className="the-rack">
-      <button>
-        <PlayCircleOutlined />
-      </button>
-      <div className="the-rack-sensors">
-        {sensorData.map((sensor) => (
-          <Dbmeter key={sensor[0].sensorId} sensor={sensor} />
-        ))}
+    <>
+      <div className="the-rack">
+        <button>
+          <PlayCircleOutlined />
+        </button>
+        <div className="the-rack-sensors">
+          {sensorData.map((sensor) => (
+            <Dbmeter key={sensor[0].sensorId} sensor={sensor} />
+          ))}
+        </div>
       </div>
-    </div>
+      <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}  libraries={['marker']}>
+        <Map
+          style={{width: '90vw', height: '40vh'}}
+          defaultCenter={position}
+          defaultZoom={20}
+          disableDefaultUI={true}
+          mapId={import.meta.env.VITE_GOOGLE_MAPS_ID}
+        >
+            {sensorData.map((sensor) => {
+              if (sensor.at(-1).latitude && sensor.at(-1).longitude) {
+                return <SensorMapMarker key={sensor.at(-1).sensorId} sensor={sensor.at(-1)} />
+              }
+            }
+            )}
+        </Map>
+      </APIProvider>
+    </>
   );
 }
 
