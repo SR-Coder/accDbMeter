@@ -8,7 +8,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/SR-Coder/accDbMeter">
-    <img src="./SC.png" alt="ACC dB Meter" width="480">
+    <img src="./screenshot.png" alt="ACC dB Meter" width="480">
   </a>
 
   <h3 align="center">ACC dB Meter</h3>
