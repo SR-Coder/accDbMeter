@@ -1,23 +1,3 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a name="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -25,206 +5,171 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-
-
-<!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/SR-Coder/accDbMeter">
-    <img src="./sensor/DBSensor/favicon2.png" alt="Logo" width="80" height="80">
+    <img src="./SC.png" alt="ACC dB Meter" width="480">
   </a>
 
-<h3 align="center">ACC DB Meter</h3>
+  <h3 align="center">ACC dB Meter</h3>
 
   <p align="center">
-    A simple app using React, Mosquitto, and Micropython to create a multi station db meter.
+    A multi-station decibel monitoring system built with React, Mosquitto MQTT, and MicroPython/C++.
     <br />
-    <a href="https://github.com/SR-Coder/accdbmeter"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <!-- <a href="https://github.com/SR-Coder/accDbMeter">View Demo</a>
-    · -->
     <a href="https://github.com/SR-Coder/accDbMeter/issues">Report Bug</a>
-    ·
+    &nbsp;·&nbsp;
     <a href="https://github.com/SR-Coder/accDbMeter/issues">Request Feature</a>
   </p>
 </div>
 
+---
 
+## About
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+ACC dB Meter is a real-time audio level monitoring system designed for multi-venue or multi-zone environments. Wireless sensors measure ambient decibel levels and publish readings over MQTT. A React dashboard subscribes to the broker and displays live per-sensor gauges, VU bars, and historical charts — all colour-coded by dB zone.
 
+**Sensors** publish to a Mosquitto MQTT broker over Wi-Fi. The **React client** connects via WebSocket and renders a card per sensor, updating in real time.
 
+---
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+## Built With
 
-[![Watch the video](https://github.com/SR-Coder/images/blob/05f440764e748dc62ee17c6884361ea359455889/SC.png)](https://youtu.be/0ZKzztuRJgg)
-
-
-
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-### Built With
-
-<!-- * [![Next][Next.js]][Next-url] -->
-* [![React][React.js]][React-url]
-* [![Micropython][micropython.dev]][micropython-url]
+* [![React][React.js]][React-url] + [Vite](https://vitejs.dev)
 * [![Mosquitto][mosquittoB]][mosquitto-url]
+* [![Micropython][micropython.dev]][micropython-url] (Raspberry Pi Pico W)
+* [Arduino / PlatformIO](https://platformio.org) (ESP32-S3)
 
-<!-- * [![Vue][Vue.js]][Vue-url] -->
-<!-- * [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url] -->
+---
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+## Architecture
 
+```
+Sensor (Pico W / ESP32-S3)
+  └─ Wi-Fi ──► Mosquitto broker  (port 1885, MQTT)
+                      │
+                      └─ WebSocket (port 8885) ──► React client (browser)
+```
 
+Each sensor publishes a JSON message to the `DBMeter` topic:
 
-<!-- GETTING STARTED -->
+```json
+{
+  "sensorId": 57243727616732,
+  "sensorName": "Back of Church",
+  "dbLevel": 74,
+  "timestamp": 1708206580764
+}
+```
+
+---
+
 ## Getting Started
-
-To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+- [Docker](https://docs.docker.com/get-docker/) — for the broker and client
+- [Node.js 20+](https://nodejs.org) — for local development only
+- A flashed Raspberry Pi Pico W or ESP32-S3 with the sensor firmware
 
-### Installation
+### Running with Docker
 
+The recommended way to run the full stack is via Docker.
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/SR-Coder/accDbMeter.git
-   ```
-1. Navigate to the dbMeterClient folder
-   ```sh
-  cd dbMeterClient
-  ```
-1. Install NPM packages
-   ```sh
-   npm install
-   ```
-1. Install mosquitto
-  ```sh
-  brew install mosquitto
-  ```
+**1. Mosquitto broker**
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+```sh
+docker run -d \
+  --name mosquitto \
+  --network br0 \
+  -v /path/to/appdata/mosquitto/config:/mosquitto/config \
+  eclipse-mosquitto:2
+```
 
+The config at `/mosquitto/config/mosquitto.conf` should define two listeners:
 
+```
+listener 1885 0.0.0.0
+allow_anonymous true
 
-<!-- USAGE EXAMPLES -->
-## Usage
+listener 8885 0.0.0.0
+protocol websockets
+allow_anonymous true
+```
 
-TBD
+**2. React client**
 
-<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+```sh
+# From the repo root
+docker build -t acc-dbmeter-client:latest ./dbMeterClient
+docker run -d \
+  --name acc-dbmeter-client \
+  --network br0 \
+  acc-dbmeter-client:latest
+```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+The client is then available at the container's assigned IP on port 80.
 
+### Local Development
 
+```sh
+cd dbMeterClient
+cp .env.sample .env.local
+# Edit .env.local — set VITE_MQTT_URL to your broker's WebSocket address
+npm install
+npm run dev
+```
 
-<!-- ROADMAP -->
+---
+
+## Sensor Configuration
+
+See [`sensor/README.md`](sensor/README.md) for firmware setup and initial Wi-Fi provisioning.
+
+Once a sensor is on the network, browse to its IP address to configure:
+- **MQTT broker address and port** (default port: `1885`)
+- **Sensor name** displayed on the dashboard
+- **Publish rate**
+
+---
+
 ## Roadmap
 
-- [ ] Build Front End
-- [ ] Simple Auth for front end (to protect settings or config)
-- [ ] Design Code for Sensor
-- [ ] Use Mosquitto Broker to share data
-- [ ] Visualize Audio Levels in a venue
-- [ ] Build Docker Environment for easy installation
+- [x] React + Vite front-end client
+- [x] Sensor firmware — Raspberry Pi Pico W (MicroPython)
+- [x] Sensor firmware — ESP32-S3 (Arduino / PlatformIO)
+- [x] Mosquitto MQTT broker integration
+- [x] Multi-station real-time dB visualisation
+- [x] Docker deployment
+- [x] Dark mode UI with dynamic VU bar and colour-coded gauges
+- [ ] Location map (Leaflet / OpenStreetMap)
+- [ ] Authentication for sensor configuration dashboard
 
-See the [open issues](https://github.com/SR-Coder/accDbMeter/issues) for a full list of proposed features (and known issues).
+---
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a pull request
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+---
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See [`LICENSE.txt`](LICENSE.txt) for details.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
-
-
-<!-- CONTACT -->
 ## Contact
 
-Jim Reeder -  info@jcrlabs.com
+Jim Reeder — info@jcrlabs.com
 
-Project Link: [https://github.com/SR-Coder/accDbMeter](https://github.com/SR-Coder/accDbMeter)
+Project: [https://github.com/SR-Coder/accDbMeter](https://github.com/SR-Coder/accDbMeter)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+---
 
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-<!-- * []()
-* []()
-* []() -->
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/SR-Coder/accDbMeter.svg?style=for-the-badge
 [contributors-url]: https://github.com/SR-Coder/accDbMeter/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/SR-Coder/accDbMeter.svg?style=for-the-badge
@@ -237,24 +182,9 @@ Project Link: [https://github.com/SR-Coder/accDbMeter](https://github.com/SR-Cod
 [license-url]: https://github.com/SR-Coder/accDbMeter/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/james-reeder-55582366/
-[product-screenshot]: images/screenshot.png
 [mosquitto-url]: https://mosquitto.org/
-[mosquittoB]:https://mosquitto.org/images/mosquitto-text-side-28.png
-[micropython.dev]:https://micropython.org/static/img/Mlogo_138wh.png
-[micropython-url]:https://micropython.org
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
+[mosquittoB]: https://mosquitto.org/images/mosquitto-text-side-28.png
+[micropython.dev]: https://micropython.org/static/img/Mlogo_138wh.png
+[micropython-url]: https://micropython.org
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
-[Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
-[Bootstrap-url]: https://getbootstrap.com
-[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com 
