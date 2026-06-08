@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Dbmeter from "../DBMeter/dbmeter";
 import mqtt from "mqtt";
-import { PlayCircleOutlined } from "@ant-design/icons";
 import "./therack.scss";
+
 const MAX_NUMBER_OF_DATA_POINTS = 600;
 const DISTANCE_BETWEEN_SAMPLES_MILLIS = 2000;
+
 function TheRack() {
   const [sensorData, setSensorData] = useState([]);
 
@@ -16,77 +17,66 @@ function TheRack() {
       connectTimeout: 30000,
       reconnectPeriod: 1000,
     };
-    const position = {lat: 53.54992, lng: 10.00678};
     const client = mqtt.connect(import.meta.env.VITE_MQTT_URL, mqttOptions);
 
     client.on("connect", () => {
       client.subscribe(topic, (err) => {
-        if (!err) {
-          console.log("subscribed");
-        }
+        if (!err) console.log("subscribed to", topic);
       });
     });
+
     client.on("message", (topic, message) => {
       const jsonMessage = JSON.parse(message);
-      // legacy support for old messages
-      if (jsonMessage.timestamp === undefined) {
-        jsonMessage.timestamp = jsonMessage.timeStamp;
-      }
-      if (jsonMessage.sensorName === undefined) {
-        jsonMessage.sensorName = jsonMessage.sensor_name;
-      }
-      // ignore messages with dbLevel less than 40
-      if (jsonMessage.dbLevel<40) {
-        return
-      }
+
+      // legacy field name support
+      if (jsonMessage.timestamp === undefined) jsonMessage.timestamp = jsonMessage.timeStamp;
+      if (jsonMessage.sensorName === undefined) jsonMessage.sensorName = jsonMessage.sensor_name;
+
+      // normalise dbLevel to a number
+      jsonMessage.dbLevel = parseFloat(jsonMessage.dbLevel);
+
+      if (jsonMessage.dbLevel < 40) return;
+
       setSensorData((prevSensorData) => {
-        // Check if sensor with the same sensorId already exists
-        const existingSensorIndex = prevSensorData.findIndex(
-          (sensorArray) => sensorArray[0].sensorId === jsonMessage.sensorId
+        const existingIndex = prevSensorData.findIndex(
+          (arr) => arr[0].sensorId === jsonMessage.sensorId
         );
-        if (existingSensorIndex !== -1) {
-          // Add the new datapoint to the sensor data array.
+
+        if (existingIndex !== -1) {
           const updatedSensorData = [...prevSensorData];
-          let newArray = updatedSensorData[existingSensorIndex];
-          // Remove data points that are too close to each other
-          if (newArray.length > 2 && newArray[newArray.length - 2].timestamp + DISTANCE_BETWEEN_SAMPLES_MILLIS >= newArray[newArray.length - 1].timestamp) {
-            let first = newArray.pop();
-            let second = newArray.pop();
-            if (first.dbLevel > second.dbLevel) {
-              newArray.push(first);
-            } else {
-              newArray.push(second);
-            }
+          let arr = updatedSensorData[existingIndex];
+
+          // drop whichever of the last two points is quieter when they're too close together
+          if (arr.length > 2 && arr[arr.length - 2].timestamp + DISTANCE_BETWEEN_SAMPLES_MILLIS >= arr[arr.length - 1].timestamp) {
+            const latest = arr.pop();
+            const prev   = arr.pop();
+            arr.push(latest.dbLevel > prev.dbLevel ? latest : prev);
           }
-          // always add the new data point -- we will remove it later if it is too close to the previous point
-          newArray.push(jsonMessage);
-          // Remove oldest data point if number of data points exceeds the maximum
-          if (newArray.length > MAX_NUMBER_OF_DATA_POINTS) {
-            newArray.shift();
-          }
-          updatedSensorData[existingSensorIndex] = [...newArray];
+
+          arr.push(jsonMessage);
+          if (arr.length > MAX_NUMBER_OF_DATA_POINTS) arr.shift();
+
+          updatedSensorData[existingIndex] = [...arr];
           return updatedSensorData;
         } else {
-          // Add new sensor data if it doesn't exist
           return [...prevSensorData, [jsonMessage]];
         }
       });
     });
 
-    return () => {
-      client.end();
-    };
-  }, []); // Empty dependency array to run effect only once
+    return () => client.end();
+  }, []);
 
   return (
     <div className="the-rack">
-      <button>
-        <PlayCircleOutlined />
-      </button>
       <div className="the-rack-sensors">
-        {sensorData.map((sensor) => (
-          <Dbmeter key={sensor[0].sensorId} sensor={sensor} />
-        ))}
+        {sensorData.length === 0 ? (
+          <p className="the-rack-empty">Waiting for sensors&hellip;</p>
+        ) : (
+          sensorData.map((sensor) => (
+            <Dbmeter key={sensor[0].sensorId} sensor={sensor} />
+          ))
+        )}
       </div>
     </div>
   );

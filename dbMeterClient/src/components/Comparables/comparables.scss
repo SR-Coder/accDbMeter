@@ -1,11 +1,11 @@
 .comparable {
-  background-color: #222;
+  background-color: #1a1a1a;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0.5em;
   width: 100%;
   height: 2em;
-  margin-top: 1em;
   border-radius: 0.25em;
 
   &-icon {
@@ -15,26 +15,19 @@
 
     svg {
       display: block;
-      height: 1.75em;
-      width: 1.75em;
+      height: 1.5em;
+      width: 1.5em;
     }
 
     path {
-      fill: #ffffff !important;
+      fill: #555 !important;
     }
   }
 
-  &-text {}
-}
-
-@media (prefers-color-scheme: light) {
-  .comparable {
-    background-color: #f5f5f5;
-
-    &-icon {
-      path {
-        fill: #000000 !important;
-      }
-    }
+  &-text {
+    font-size: 0.8em;
+    color: #555;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }
