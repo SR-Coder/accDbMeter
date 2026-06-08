@@ -38,6 +38,7 @@ ACC dB Meter is a real-time audio level monitoring system designed for multi-ven
 * [![Mosquitto][mosquittoB]][mosquitto-url]
 * [![Micropython][micropython.dev]][micropython-url] (Raspberry Pi Pico W)
 * [Arduino / PlatformIO](https://platformio.org) (ESP32-S3)
+* [PCB Artists I2C Decibel Sound Level Meter](https://pcbartists.com/product/i2c-decibel-sound-level-meter-module/) — 30–120 dB SPL, I²C, MEMS microphone
 
 ---
 

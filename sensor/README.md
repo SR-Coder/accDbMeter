@@ -11,6 +11,34 @@ Both targets connect to a Wi-Fi network, read decibel levels over I²C, and publ
 
 ---
 
+## dB Sensor Hardware
+
+**[PCB Artists I2C Decibel Sound Level Meter Module](https://pcbartists.com/product/i2c-decibel-sound-level-meter-module/)**
+
+| Spec | Value |
+|------|-------|
+| Measurement range | 30 – 120 dB SPL |
+| Accuracy | ±2 dB |
+| Frequency range | 30 Hz – 8 kHz |
+| Interface | I²C |
+| I²C address | `0x48` |
+| Supply voltage | 3.3 V |
+| Microphone | Built-in MEMS |
+| History buffer | 100 readings |
+
+The module exposes current dB level, min/max tracking, configurable averaging time, and a 100-reading history buffer — all over I²C. Refer to the [PCB Artists programming guide](https://pcbartists.com/product-documentation/i2c-decibel-meter-programming-manual/) for the full register map.
+
+**Wiring (ESP32-S3 DevKitC)**
+
+| Sensor pin | ESP32-S3 pin |
+|------------|--------------|
+| SDA | GPIO 37 |
+| SCL | GPIO 38 |
+| VCC | 3.3 V |
+| GND | GND |
+
+---
+
 ## Initial Setup
 
 ### Raspberry Pi Pico W
