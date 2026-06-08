@@ -1,64 +1,98 @@
-# React + Vite
+# ACC dB Meter — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite front-end for the ACC dB Meter system. Connects to a Mosquitto MQTT broker via WebSocket and displays real-time decibel readings from one or more wireless sensors.
 
-Currently, two official plugins are available:
+---
 
-- Please use functional components
+## Running with Docker (recommended)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```sh
+# From this directory
+docker build -t acc-dbmeter-client:latest .
+docker run -d \
+  --name acc-dbmeter-client \
+  --restart unless-stopped \
+  --network br0 \
+  acc-dbmeter-client:latest
+```
 
-## Running the app in dev mode
+The app is served by nginx on port 80 at the container's assigned IP.
 
-copy the .env.sample file to .env.local
+---
 
-`npm run dev`
+## Local Development
 
+**1. Configure environment**
 
-## Mosquitto
-Install mosquitto using:
-`brew install mosquitto`
+```sh
+cp .env.sample .env.local
+```
 
-run up the server using the simple config file:
-`mosquitto -c ./local.mosquitto.conf`
+Edit `.env.local` and set `VITE_MQTT_URL` to your broker's WebSocket address:
 
-In the webapp, click on connect and then subscribe.
+```
+VITE_MQTT_URL=ws://<broker-ip>:8885
+```
 
-Then we can send messages using:
-`mosquitto_pub -h 127.0.0.1 -p 1885 -t dbMeter/dbLevel -f sample_messages/green_low.json`
+**2. Install and run**
 
-With the defaults in the webapp you should see the messages appear.
+```sh
+npm install
+npm run dev
+```
 
-## Running test messages
-From the dbMeterClient directory run.
-`node sample_messages/send_messages.js`
+---
 
-It's a simple file that contains the list of sensors to send from and the interval
-for how frequently they are sent at the top of the file. Feel free to edit to add
-more sensors, or change the interval.
+## Simulating Sensor Data
 
-## MQTT integration
+To test the UI without physical sensors, use the included message sender from this directory:
 
-This is based on the guide here:
-https://mpolinowski.github.io/docs/Development/Javascript/2021-06-01--mqtt-with-reactjs/2021-06-01/
+```sh
+node sample_messages/send_messages.js
+```
 
-Like the guide, the MQTT React components have been pulled in from here:
-https://github.com/emqx/MQTT-Client-Examples
-specifically this version:
-https://github.com/emqx/MQTT-Client-Examples/tree/ccf475eec8ec7f03d6ec9e75c462fdb53bb4438d/mqtt-client-React/src/components
+Edit the top of `send_messages.js` to adjust the sensor list and publish interval.
 
-## Google Maps
+You can also publish a single test message directly:
 
-Google Maps integration is done using the 
-visgl Google Maps library -- https://visgl.github.io/react-google-maps
-https://visgl.github.io/react-google-maps/examples
+```sh
+mosquitto_pub -h <broker-ip> -p 1885 -t DBMeter -f sample_messages/green_low.json
+```
 
-It gives a great springboard for some very cool visualisations and effects.
+---
 
-### TODO
-[] Auth - https://mosquitto.org/documentation/authentication-methods/
-[] Admin pages?
-[] Styling of the maps
-[] resizing of dbMeters and the graph to fit in maps nicely
-[] explore heatmaps
+## MQTT Message Format
+
+The client subscribes to the `DBMeter` topic and expects JSON in this shape:
+
+```json
+{
+  "sensorId": 57243727616732,
+  "sensorName": "Back of Church",
+  "dbLevel": 74,
+  "timestamp": 1708206580764
+}
+```
+
+The client also accepts legacy field names (`sensor_name`, `timeStamp`) for backwards compatibility with older firmware.
+
+---
+
+## dB Colour Zones
+
+| Range | Colour | Meaning |
+|-------|--------|---------|
+| < 85 dB | Green | Safe |
+| 85 – 89 dB | Yellow | Caution |
+| 90 dB + | Red | Danger |
+
+These thresholds are reflected in the ring border, VU bar, and chart line.
+
+---
+
+## Routes
+
+| Path | Description |
+|------|-------------|
+| `/` | Main dashboard — live sensor cards |
+| `/debug` | Raw MQTT connection and message inspector |
