@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Dbmeter from "../DBMeter/dbmeter";
 import mqtt from "mqtt";
+import { DB_MIN, DB_MAX } from "../DBMeter/dbRange";
 import "./therack.scss";
 
 const MAX_NUMBER_OF_DATA_POINTS = 600;
@@ -35,7 +36,8 @@ function TheRack() {
       // normalise dbLevel to a number
       jsonMessage.dbLevel = parseFloat(jsonMessage.dbLevel);
 
-      if (jsonMessage.dbLevel < 40) return;
+      // drop readings outside the sensor's range (255 = no sensor attached)
+      if (!(jsonMessage.dbLevel >= DB_MIN && jsonMessage.dbLevel <= DB_MAX)) return;
 
       setSensorData((prevSensorData) => {
         const existingIndex = prevSensorData.findIndex(

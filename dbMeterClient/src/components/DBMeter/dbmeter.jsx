@@ -2,6 +2,7 @@ import Comparables from "../Comparables/Comparables";
 import { NumberFormatter } from "../NumberFormatter/NumberFormatter";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import PropTypes from "prop-types";
+import { DB_MIN, DB_MAX } from "./dbRange";
 import "./dbmeter.scss";
 
 function getDbColor(db) {
@@ -27,7 +28,7 @@ function Dbmeter({ sensor }) {
   }));
 
   const dbColor = getDbColor(formattedDB);
-  const vuPercent = Math.min(100, Math.max(0, ((formattedDB - 40) / 65) * 100));
+  const vuPercent = Math.min(100, Math.max(0, ((formattedDB - DB_MIN) / (DB_MAX - DB_MIN)) * 100));
   const gradientId = `fill-${String(last.sensorId).replace(/\W/g, '')}`;
   const axisStyle = { fill: '#444', fontSize: 10, fontFamily: 'JosefinSans, Arial, sans-serif' };
 
@@ -64,28 +65,28 @@ function Dbmeter({ sensor }) {
         <ResponsiveContainer width="100%" height={150}>
           <AreaChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
             <defs>
-              {/* Y-axis gradient: hard stops at 90 dB (16.7% from top) and 85 dB (25% from top)
-                  based on fixed domain [40, 100] → range of 60 dB */}
+              {/* Y-axis gradient: hard stops at 90 dB (33.3% from top) and 85 dB (38.9% from top)
+                  based on fixed domain [30, 120] → range of 90 dB */}
               <linearGradient id={`${gradientId}-stroke`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"    stopColor="#ff1744" />
-                <stop offset="16.7%" stopColor="#ff1744" />
-                <stop offset="16.7%" stopColor="#ffd740" />
-                <stop offset="25%"   stopColor="#ffd740" />
-                <stop offset="25%"   stopColor="#00e676" />
+                <stop offset="33.3%" stopColor="#ff1744" />
+                <stop offset="33.3%" stopColor="#ffd740" />
+                <stop offset="38.9%"   stopColor="#ffd740" />
+                <stop offset="38.9%"   stopColor="#00e676" />
                 <stop offset="100%"  stopColor="#00e676" />
               </linearGradient>
               <linearGradient id={`${gradientId}-fill`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"    stopColor="#ff1744" stopOpacity={0.4} />
-                <stop offset="16.7%" stopColor="#ff1744" stopOpacity={0.4} />
-                <stop offset="16.7%" stopColor="#ffd740" stopOpacity={0.3} />
-                <stop offset="25%"   stopColor="#ffd740" stopOpacity={0.3} />
-                <stop offset="25%"   stopColor="#00e676" stopOpacity={0.2} />
+                <stop offset="33.3%" stopColor="#ff1744" stopOpacity={0.4} />
+                <stop offset="33.3%" stopColor="#ffd740" stopOpacity={0.3} />
+                <stop offset="38.9%"   stopColor="#ffd740" stopOpacity={0.3} />
+                <stop offset="38.9%"   stopColor="#00e676" stopOpacity={0.2} />
                 <stop offset="100%"  stopColor="#00e676" stopOpacity={0}   />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
             <XAxis tick={axisStyle} dataKey="time" />
-            <YAxis tick={axisStyle} domain={[40, 100]} />
+            <YAxis tick={axisStyle} domain={[DB_MIN, DB_MAX]} />
             <Tooltip
               contentStyle={{ backgroundColor: '#141414', border: `1px solid ${dbColor}44`, borderRadius: '0.4em' }}
               labelStyle={{ color: '#555' }}
